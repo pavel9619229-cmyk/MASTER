@@ -117,11 +117,6 @@ function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
 }
 
-function isValidCustomerPhone(phone) {
-	const digitsOnly = String(phone).replace(/\D/g, "");
-	return digitsOnly.length >= 10;
-}
-
 function emitState() {
 	io.emit("state", state);
 }
@@ -130,44 +125,6 @@ state.slots = buildSlots(state.settings);
 
 io.on("connection", (socket) => {
 	socket.emit("state", state);
-
-	socket.on("customer:clickSlot", ({ slotId, customerName, customerPhone }) => {
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
-
-		const currentStatus = normalizeStatus(state.slots[slotId].status);
-		if (currentStatus !== "free" && currentStatus !== "requested") {
-			return;
-		}
-
-		if (currentStatus === "free") {
-			const safeName = String(customerName || "").trim();
-			const safePhone = String(customerPhone || "").trim();
-			if (!safeName || !safePhone || !isValidCustomerPhone(safePhone)) {
-				socket.emit("error:message", "Для подачи заявки заполните имя и корректный номер телефона КЛИЕНТА.");
-				return;
-			}
-
-			state.slots[slotId] = {
-				...state.slots[slotId],
-				status: "requested",
-				customerName: safeName,
-				customerPhone: safePhone,
-				updatedAt: new Date().toISOString(),
-			};
-		} else {
-			state.slots[slotId] = {
-				...state.slots[slotId],
-				status: "free",
-				customerName: "",
-				customerPhone: "",
-				updatedAt: new Date().toISOString(),
-			};
-		}
-
-		emitState();
-	});
 
 	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
 		if (!slotId || !state.slots[slotId]) {
@@ -206,40 +163,6 @@ io.on("connection", (socket) => {
 		emitState();
 	});
 
-	socket.on("executor:clickSlot", ({ slotId }) => {
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
-
-		const currentStatus = normalizeStatus(state.slots[slotId].status);
-		let nextStatus;
-
-		if (currentStatus === "requested") {
-			nextStatus = "rejected";
-		} else if (currentStatus === "free") {
-			nextStatus = "confirmed";
-		} else if (currentStatus === "confirmed") {
-			nextStatus = "rejected";
-		} else if (currentStatus === "rejected") {
-			nextStatus = "free";
-		} else {
-			return;
-		}
-
-		state.slots[slotId] = {
-			...state.slots[slotId],
-			status: nextStatus,
-			updatedAt: new Date().toISOString(),
-		};
-
-		if (nextStatus === "free") {
-			state.slots[slotId].customerName = "";
-			state.slots[slotId].customerPhone = "";
-		}
-
-		emitState();
-	});
-
 	socket.on("executor:confirmSlot", ({ slotId, selectedStatus }) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
@@ -273,15 +196,13 @@ io.on("connection", (socket) => {
 		emitState();
 	});
 
-	socket.on("executor:updateSettings", (nextSettings) => {
-		const validated = validateSettings(nextSettings);
-		if (!validated.ok) {
-			socket.emit("error:message", validated.error);
+	socket.on("customer:setComment", ({ slotId, comment }) => {
+		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
-
-		state.settings = validated.value;
-		state.slots = buildSlots(state.settings);
+		const safeComment = String(comment || "").trim().slice(0, 300);
+		state.slots[slotId].customerComment = safeComment;
+		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});
 });

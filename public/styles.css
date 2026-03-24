@@ -347,6 +347,14 @@ h1 {
 	padding: 0 2px;
 }
 
+.slot-comment-readonly.executor-comment {
+	color: #006d77;
+}
+
+.slot-comment-readonly.customer-comment {
+	color: #ff9800;
+}
+
 .settings-form {
 	display: grid;
 	grid-template-columns: 1fr;

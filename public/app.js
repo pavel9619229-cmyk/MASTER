@@ -113,11 +113,6 @@ function getNextCustomerStatus(currentStatus) {
 	return "requested";
 }
 
-function isValidCustomerPhone(phone) {
-	const digitsOnly = phone.replace(/\D/g, "");
-	return digitsOnly.length >= 10;
-}
-
 function normalizeCustomerPhoneInput(value) {
 	const digitsOnly = String(value || "").replace(/\D/g, "");
 	if (digitsOnly.startsWith("7")) {
@@ -196,12 +191,24 @@ function renderCalendar() {
 						? `<ul class="slot-history">${historyItems.map((e) => `<li>${historyEntryText(e)}</li>`).join("")}</ul>`
 						: "";
 
-					const commentHtml = role === "executor"
-						? `<form class="slot-comment-form" data-comment-slot="${slotId}">
+					let commentHtml = "";
+					if (role === "executor") {
+						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="executor">
 							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Комментарий мастера" value="${escapeHtml(slot.comment || "")}" />
 							<button type="submit" class="slot-comment-btn" title="Сохранить">✓</button>
-						</form>`
-						: (slot.comment ? `<span class="slot-comment-readonly">${escapeHtml(slot.comment)}</span>` : "");
+						</form>`;
+						if (slot.customerComment) {
+							commentHtml += `<span class="slot-comment-readonly customer-comment">Клиент: ${escapeHtml(slot.customerComment)}</span>`;
+						}
+					} else if (role === "customer") {
+						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="customer">
+							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Ваш комментарий" value="${escapeHtml(slot.customerComment || "")}" />
+							<button type="submit" class="slot-comment-btn" title="Сохранить">✓</button>
+						</form>`;
+						if (slot.comment) {
+							commentHtml += `<span class="slot-comment-readonly executor-comment">Мастер: ${escapeHtml(slot.comment)}</span>`;
+						}
+					}
 
 					const showConfirmBtn = role === "executor"
 						? (normalizedStatus === "requested" || clickable)
@@ -252,8 +259,13 @@ function renderCalendar() {
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 			const slotId = form.getAttribute("data-comment-slot");
+			const commentBy = form.getAttribute("data-comment-by");
 			const input = form.querySelector(".slot-comment-input");
-			socket.emit("executor:setComment", { slotId, comment: input.value });
+			if (commentBy === "executor") {
+				socket.emit("executor:setComment", { slotId, comment: input.value });
+			} else if (commentBy === "customer") {
+				socket.emit("customer:setComment", { slotId, comment: input.value });
+			}
 			setHint("Комментарий сохранён.");
 		});
 	});
@@ -298,9 +310,9 @@ function renderRoleState() {
 	});
 
 	if (role === "customer") {
-		setHint("КЛИЕНТ: белый слот создает запрос, повторный клик по желтому отменяет запрос.");
+		setHint("КЛИЕНТ: клик по слоту выбирает черновой статус, кнопка Подтвердить применяет его.");
 	} else {
-		setHint("МАСТЕР: каждый клик по слоту переключает статус по циклу.");
+		setHint("МАСТЕР: клик по слоту выбирает черновой статус, кнопка Подтвердить применяет его.");
 	}
 }
 
