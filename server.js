@@ -13,10 +13,10 @@ const ALL_WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
 const state = {
 	settings: {
-		startHour: 9,
-		endHour: 18,
-		slotMinutes: 30,
-		workDays: [1, 2, 3, 4, 5],
+		startHour: 12,
+		endHour: 14,
+		slotMinutes: 60,
+		workDays: [2, 5],
 	},
 	slots: {},
 };
@@ -155,10 +155,6 @@ io.on("connection", (socket) => {
 				customerName: safeName,
 				customerPhone: safePhone,
 				updatedAt: new Date().toISOString(),
-				history: [
-					...(state.slots[slotId].history || []),
-					{ at: new Date().toISOString(), by: "customer", toStatus: "requested", customerName: safeName, customerPhone: safePhone },
-				],
 			};
 		} else {
 			state.slots[slotId] = {
@@ -167,13 +163,46 @@ io.on("connection", (socket) => {
 				customerName: "",
 				customerPhone: "",
 				updatedAt: new Date().toISOString(),
-				history: [
-					...(state.slots[slotId].history || []),
-					{ at: new Date().toISOString(), by: "customer", toStatus: "free" },
-				],
 			};
 		}
 
+		emitState();
+	});
+
+	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
+		if (!slotId || !state.slots[slotId]) {
+			return;
+		}
+
+		const normalizedSelected = normalizeStatus(selectedStatus);
+		if (normalizedSelected !== "requested" && normalizedSelected !== "free") {
+			return;
+		}
+
+		if (normalizedSelected === "requested") {
+			const safeName = String(customerName || "").trim();
+			const safePhone = String(customerPhone || "").trim();
+
+			state.slots[slotId].status = "requested";
+			state.slots[slotId].customerName = safeName || state.slots[slotId].customerName || "";
+			state.slots[slotId].customerPhone = safePhone || state.slots[slotId].customerPhone || "";
+		} else {
+			state.slots[slotId].status = "free";
+			state.slots[slotId].customerName = "";
+			state.slots[slotId].customerPhone = "";
+		}
+
+		state.slots[slotId].history = [
+			...(state.slots[slotId].history || []),
+			{
+				at: new Date().toISOString(),
+				by: "customer",
+				toStatus: state.slots[slotId].status,
+				customerName: state.slots[slotId].customerName || "",
+				customerPhone: state.slots[slotId].customerPhone || "",
+			},
+		];
+		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});
 
@@ -186,7 +215,7 @@ io.on("connection", (socket) => {
 		let nextStatus;
 
 		if (currentStatus === "requested") {
-			nextStatus = "confirmed";
+			nextStatus = "rejected";
 		} else if (currentStatus === "free") {
 			nextStatus = "confirmed";
 		} else if (currentStatus === "confirmed") {
@@ -211,15 +240,25 @@ io.on("connection", (socket) => {
 		emitState();
 	});
 
-	socket.on("executor:confirmSlot", ({ slotId }) => {
+	socket.on("executor:confirmSlot", ({ slotId, selectedStatus }) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
-		const currentStatus = normalizeStatus(state.slots[slotId].status);
+		const allowedStatuses = ["free", "requested", "confirmed", "rejected"];
+		const normalizedSelected = normalizeStatus(selectedStatus);
+		const confirmedStatus = allowedStatuses.includes(normalizedSelected)
+			? normalizedSelected
+			: normalizeStatus(state.slots[slotId].status);
+
+		state.slots[slotId].status = confirmedStatus;
 		state.slots[slotId].history = [
 			...(state.slots[slotId].history || []),
-			{ at: new Date().toISOString(), by: "executor", toStatus: currentStatus },
+			{ at: new Date().toISOString(), by: "executor", toStatus: confirmedStatus },
 		];
+		if (confirmedStatus === "free") {
+			state.slots[slotId].customerName = "";
+			state.slots[slotId].customerPhone = "";
+		}
 		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});

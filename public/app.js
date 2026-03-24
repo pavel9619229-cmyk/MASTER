@@ -18,15 +18,17 @@ const PHONE_PREFIX = "+7";
 
 let appState = {
 	settings: {
-		startHour: 9,
-		endHour: 18,
-		slotMinutes: 30,
-		workDays: [1, 2, 3, 4, 5],
+		startHour: 12,
+		endHour: 14,
+		slotMinutes: 60,
+		workDays: [2, 5],
 	},
 	slots: {},
 };
 
 let role = "customer";
+let executorDraftStatuses = {};
+let customerDraftStatuses = {};
 
 function setHint(text) {
 	hint.textContent = text;
@@ -64,9 +66,10 @@ function historyEntryText(entry) {
 	const time = formatTime(entry.at);
 	if (entry.by === "customer") {
 		if (entry.toStatus === "requested") {
-			return `${time} — запрос: ${escapeHtml(entry.customerName || "")} | ${escapeHtml(entry.customerPhone || "")}`;
+			return `${time} — клиент подтвердил запрос: ${escapeHtml(entry.customerName || "")} | ${escapeHtml(entry.customerPhone || "")}`;
 		}
-		return `${time} — клиент отменил запрос`;
+		if (entry.toStatus === "free") return `${time} — клиент подтвердил отмену`;
+		return `${time} — клиент подтвердил: ${escapeHtml(entry.toStatus || "")}`;
 	}
 	if (entry.toStatus === "confirmed") return `${time} — мастер подтвердил`;
 	if (entry.toStatus === "rejected") return `${time} — мастер отклонил`;
@@ -96,6 +99,20 @@ function canClickSlot(slotStatus) {
 	return false;
 }
 
+function getNextExecutorStatus(currentStatus) {
+	const normalized = normalizeStatus(currentStatus);
+	if (normalized === "requested") return "confirmed";
+	if (normalized === "confirmed") return "rejected";
+	if (normalized === "rejected") return "free";
+	return "confirmed";
+}
+
+function getNextCustomerStatus(currentStatus) {
+	const normalized = normalizeStatus(currentStatus);
+	if (normalized === "requested") return "free";
+	return "requested";
+}
+
 function isValidCustomerPhone(phone) {
 	const digitsOnly = phone.replace(/\D/g, "");
 	return digitsOnly.length >= 10;
@@ -118,38 +135,17 @@ function handleSlotClick(slotId, slotStatus) {
 	}
 
 	if (role === "customer") {
-		const normalized = normalizeStatus(slotStatus);
-
-		if (normalized === "free") {
-			const customerName = customerNameInput.value.trim();
-			const customerPhone = customerPhoneInput.value.trim();
-
-			if (!customerName || !customerPhone) {
-				setHint("Чтобы подать заявку, укажите имя и номер телефона КЛИЕНТА.");
-				return;
-			}
-
-			if (!isValidCustomerPhone(customerPhone)) {
-				setHint("Введите корректный номер телефона КЛИЕНТА (минимум 10 цифр).");
-				return;
-			}
-
-			socket.emit("customer:clickSlot", {
-				slotId,
-				customerName,
-				customerPhone,
-			});
-			setHint("Запрос отправлен мастеру.");
-			return;
-		}
-
-		socket.emit("customer:clickSlot", { slotId });
-		setHint("Запрос отменен, слот снова свободен.");
+		const currentDraft = customerDraftStatuses[slotId] || normalizeStatus(slotStatus);
+		customerDraftStatuses[slotId] = getNextCustomerStatus(currentDraft);
+		renderCalendar();
+		setHint("КЛИЕНТ: выбран черновой статус. Для применения нажмите Подтвердить.");
 		return;
 	}
 
-	socket.emit("executor:clickSlot", { slotId });
-	setHint("Статус слота изменен мастером.");
+	const currentDraft = executorDraftStatuses[slotId] || normalizeStatus(slotStatus);
+	executorDraftStatuses[slotId] = getNextExecutorStatus(currentDraft);
+	renderCalendar();
+	setHint("МАСТЕР: выбран черновой статус. Для применения нажмите Подтвердить.");
 }
 
 function renderCalendar() {
@@ -180,7 +176,11 @@ function renderCalendar() {
 					const slot = appState.slots[slotId];
 					if (!slot) return "<td></td>";
 
-					const normalizedStatus = normalizeStatus(slot.status);
+					const normalizedStatus = role === "executor" && executorDraftStatuses[slotId]
+						? executorDraftStatuses[slotId]
+						: role === "customer" && customerDraftStatuses[slotId]
+							? customerDraftStatuses[slotId]
+							: normalizeStatus(slot.status);
 					const clickable = canClickSlot(normalizedStatus);
 					const showCustomerDetails =
 						role === "executor" &&
@@ -203,8 +203,11 @@ function renderCalendar() {
 						</form>`
 						: (slot.comment ? `<span class="slot-comment-readonly">${escapeHtml(slot.comment)}</span>` : "");
 
-					const confirmBtnHtml = role === "executor" && clickable
-						? `<button class="slot-confirm-btn" data-confirm-slot="${slotId}" title="Подтвердить">Подтвердить</button>`
+					const showConfirmBtn = role === "executor"
+						? (normalizedStatus === "requested" || clickable)
+						: clickable;
+					const confirmBtnHtml = showConfirmBtn
+						? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slotId}" data-confirm-by="${role}" title="Подтвердить">Подтвердить</button>`
 						: "";
 
 					return `
@@ -256,10 +259,27 @@ function renderCalendar() {
 	});
 
 	calendarWrapper.querySelectorAll(".slot-confirm-btn").forEach((btn) => {
-		btn.addEventListener("click", () => {
+		btn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
 			const slotId = btn.getAttribute("data-confirm-slot");
-			socket.emit("executor:confirmSlot", { slotId });
-			setHint("Статус зафиксирован в истории.");
+			const confirmBy = btn.getAttribute("data-confirm-by");
+			if (confirmBy === "customer") {
+				const selectedStatus = customerDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId]?.status);
+				const customerName = customerNameInput.value.trim();
+				const customerPhone = customerPhoneInput.value.trim();
+				socket.emit("customer:confirmSlot", {
+					slotId,
+					selectedStatus,
+					customerName,
+					customerPhone,
+				});
+				setHint("Клиент подтвердил выбранный статус.");
+				return;
+			}
+			const selectedStatus = executorDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId]?.status);
+			socket.emit("executor:confirmSlot", { slotId, selectedStatus });
+			setHint("Мастер подтвердил выбранный статус.");
 		});
 	});
 }
@@ -302,6 +322,12 @@ function fillSettingsForm() {
 
 roleSelect.addEventListener("change", (event) => {
 	role = event.target.value;
+	if (role !== "executor") {
+		executorDraftStatuses = {};
+	}
+	if (role !== "customer") {
+		customerDraftStatuses = {};
+	}
 	renderRoleState();
 	renderCalendar();
 });
@@ -337,6 +363,8 @@ settingsForm.addEventListener("submit", (event) => {
 
 socket.on("state", (nextState) => {
 	appState = nextState;
+	executorDraftStatuses = {};
+	customerDraftStatuses = {};
 	fillSettingsForm();
 
 	renderCalendar();
