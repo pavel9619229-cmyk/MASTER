@@ -64,6 +64,14 @@ function escapeHtml(value) {
 
 function historyEntryText(entry) {
 	const time = formatTime(entry.at);
+	if (entry.kind === "comment") {
+		if (entry.by === "executor") {
+			if (!entry.comment) return `${time} — мастер очистил комментарий`;
+			return `${time} — мастер: ${escapeHtml(entry.comment)}`;
+		}
+		if (!entry.comment) return `${time} — клиент очистил комментарий`;
+		return `${time} — клиент: ${escapeHtml(entry.comment)}`;
+	}
 	if (entry.by === "customer") {
 		if (entry.toStatus === "requested") {
 			return `${time} — клиент подтвердил запрос: ${escapeHtml(entry.customerName || "")} | ${escapeHtml(entry.customerPhone || "")}`;
@@ -195,19 +203,13 @@ function renderCalendar() {
 					if (role === "executor") {
 						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="executor">
 							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Комментарий мастера" value="${escapeHtml(slot.comment || "")}" />
-							<button type="submit" class="slot-comment-btn" title="Сохранить">✓</button>
+							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить">Отправить</button>
 						</form>`;
-						if (slot.customerComment) {
-							commentHtml += `<span class="slot-comment-readonly customer-comment">Клиент: ${escapeHtml(slot.customerComment)}</span>`;
-						}
 					} else if (role === "customer") {
 						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="customer">
 							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Ваш комментарий" value="${escapeHtml(slot.customerComment || "")}" />
-							<button type="submit" class="slot-comment-btn" title="Сохранить">✓</button>
+							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить">Отправить</button>
 						</form>`;
-						if (slot.comment) {
-							commentHtml += `<span class="slot-comment-readonly executor-comment">Мастер: ${escapeHtml(slot.comment)}</span>`;
-						}
 					}
 
 					const showConfirmBtn = role === "executor"
@@ -255,9 +257,11 @@ function renderCalendar() {
 		});
 	});
 
-	calendarWrapper.querySelectorAll(".slot-comment-form").forEach((form) => {
+	const commentForms = calendarWrapper.querySelectorAll(".slot-comment-form");
+	commentForms.forEach((form) => {
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
+			e.stopPropagation();
 			const slotId = form.getAttribute("data-comment-slot");
 			const commentBy = form.getAttribute("data-comment-by");
 			const input = form.querySelector(".slot-comment-input");
@@ -270,7 +274,27 @@ function renderCalendar() {
 		});
 	});
 
-	calendarWrapper.querySelectorAll(".slot-confirm-btn").forEach((btn) => {
+	calendarWrapper.querySelectorAll(".slot-comment-send-btn").forEach((btn) => {
+		btn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const form = btn.closest(".slot-comment-form");
+			if (!form) return;
+			const slotId = form.getAttribute("data-comment-slot");
+			const commentBy = form.getAttribute("data-comment-by");
+			const input = form.querySelector(".slot-comment-input");
+			if (!slotId || !commentBy || !input) return;
+
+			if (commentBy === "executor") {
+				socket.emit("executor:setComment", { slotId, comment: input.value });
+			} else if (commentBy === "customer") {
+				socket.emit("customer:setComment", { slotId, comment: input.value });
+			}
+			setHint("Комментарий сохранён.");
+		});
+	});
+
+	calendarWrapper.querySelectorAll(".slot-confirm-btn[data-confirm-slot]").forEach((btn) => {
 		btn.addEventListener("click", (e) => {
 			e.preventDefault();
 			e.stopPropagation();

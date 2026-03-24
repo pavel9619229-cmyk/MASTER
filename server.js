@@ -192,6 +192,15 @@ io.on("connection", (socket) => {
 		}
 		const safeComment = String(comment || "").trim().slice(0, 300);
 		state.slots[slotId].comment = safeComment;
+		state.slots[slotId].history = [
+			...(state.slots[slotId].history || []),
+			{
+				at: new Date().toISOString(),
+				by: "executor",
+				kind: "comment",
+				comment: safeComment,
+			},
+		];
 		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});
@@ -202,6 +211,15 @@ io.on("connection", (socket) => {
 		}
 		const safeComment = String(comment || "").trim().slice(0, 300);
 		state.slots[slotId].customerComment = safeComment;
+		state.slots[slotId].history = [
+			...(state.slots[slotId].history || []),
+			{
+				at: new Date().toISOString(),
+				by: "customer",
+				kind: "comment",
+				comment: safeComment,
+			},
+		];
 		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});
