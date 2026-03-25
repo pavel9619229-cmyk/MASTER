@@ -31,6 +31,7 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 app.use(express.urlencoded({ extended: false }));
+app.use(ensureCustomerIdentity);
 
 // Share express session with socket.io
 io.use((socket, next) => {
@@ -45,6 +46,7 @@ function requireMasterAuth(req, res, next) {
 const PORT = process.env.PORT || 3000;
 const DAYS_TO_SHOW = 7;
 const ALL_WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const CLIENT_COOKIE_NAME = "client_id";
 
 const state = {
 	settings: {
@@ -156,12 +158,69 @@ function generateId() {
 	return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function getOrCreateCustomerId(sessionObj) {
-	if (!sessionObj) return null;
-	if (!sessionObj.customerId) {
-		sessionObj.customerId = generateId();
+function parseCookies(cookieHeader) {
+	const raw = String(cookieHeader || "");
+	if (!raw) return {};
+	return raw.split(";").reduce((acc, chunk) => {
+		const [k, ...rest] = chunk.trim().split("=");
+		if (!k) return acc;
+		acc[k] = decodeURIComponent(rest.join("=") || "");
+		return acc;
+	}, {});
+}
+
+function getCustomerIdFromCookieHeader(cookieHeader) {
+	const cookies = parseCookies(cookieHeader);
+	const value = cookies[CLIENT_COOKIE_NAME];
+	if (!value || typeof value !== "string") return "";
+	return value.trim();
+}
+
+function getOrCreateCustomerId(requestObj) {
+	if (!requestObj) return generateId();
+
+	const cookieCustomerId = getCustomerIdFromCookieHeader(requestObj.headers && requestObj.headers.cookie);
+	if (cookieCustomerId) {
+		if (requestObj.session) {
+			requestObj.session.customerId = cookieCustomerId;
+		}
+		return cookieCustomerId;
 	}
-	return sessionObj.customerId;
+
+	if (requestObj.session && requestObj.session.customerId) {
+		return requestObj.session.customerId;
+	}
+
+	const generated = generateId();
+	if (requestObj.session) {
+		requestObj.session.customerId = generated;
+	}
+	return generated;
+}
+
+function ensureCustomerIdentity(req, res, next) {
+	if (req.session && req.session.isMaster) {
+		return next();
+	}
+
+	const cookieCustomerId = getCustomerIdFromCookieHeader(req.headers && req.headers.cookie);
+	const customerId = cookieCustomerId || req.session?.customerId || generateId();
+
+	if (req.session) {
+		req.session.customerId = customerId;
+	}
+
+	if (!cookieCustomerId) {
+		res.cookie(CLIENT_COOKIE_NAME, customerId, {
+			httpOnly: true,
+			sameSite: "lax",
+			secure: process.env.NODE_ENV === "production",
+			maxAge: 365 * 24 * 60 * 60 * 1000,
+			path: "/",
+		});
+	}
+
+	next();
 }
 
 function buildStateForSocket(socket) {
@@ -171,7 +230,7 @@ function buildStateForSocket(socket) {
 		return state;
 	}
 
-	const currentCustomerId = getOrCreateCustomerId(sessionObj);
+	const currentCustomerId = getOrCreateCustomerId(socket.request);
 	const safeSlots = {};
 
 	for (const [slotId, slot] of Object.entries(state.slots)) {
@@ -214,7 +273,7 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
-		const customerId = getOrCreateCustomerId(socket.request.session);
+		const customerId = getOrCreateCustomerId(socket.request);
 
 		const normalizedSelected = normalizeStatus(selectedStatus);
 		if (normalizedSelected !== "requested" && normalizedSelected !== "free") {
@@ -321,7 +380,7 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
-		const customerId = getOrCreateCustomerId(socket.request.session);
+		const customerId = getOrCreateCustomerId(socket.request);
 		const slot = state.slots[slotId];
 		if (!slot.customerId || slot.customerId !== customerId) {
 			socket.emit("error:message", "Нельзя менять комментарий в чужом слоте.");
