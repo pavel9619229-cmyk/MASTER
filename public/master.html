@@ -27,6 +27,11 @@
 				</header>
 
 				<div class="toolbar master-toolbar">
+					<div class="week-nav" aria-label="Навигация по неделям">
+						<button id="week-prev" type="button" class="btn">← Неделя</button>
+						<div id="week-label" class="week-label"></div>
+						<button id="week-next" type="button" class="btn">Неделя →</button>
+					</div>
 					<form method="POST" action="/logout" style="margin:0">
 						<button type="submit" class="btn logout-btn">Выйти</button>
 					</form>
@@ -37,24 +42,8 @@
 
 			<aside class="panel panel-side">
 				<section id="settings-section">
-					<h2>Рабочие часы</h2>
+					<h2>Рабочие дни выбранной недели</h2>
 					<form id="settings-form" class="settings-form">
-						<label>
-							Начало
-							<input id="startHour" type="number" min="0" max="23" value="12" />
-						</label>
-						<label>
-							Конец
-							<input id="endHour" type="number" min="1" max="24" value="14" />
-						</label>
-						<label>
-							Слот (мин)
-							<select id="slotMinutes">
-								<option value="15">15</option>
-								<option value="30">30</option>
-								<option value="60" selected>60</option>
-							</select>
-						</label>
 						<fieldset class="workdays-fieldset">
 							<legend>Рабочие дни</legend>
 							<div class="workdays-group">
@@ -67,7 +56,7 @@
 								<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
 							</div>
 						</fieldset>
-						<button type="submit" class="btn primary">Применить</button>
+						<button type="submit" class="btn primary">Добавить рабочие дни</button>
 					</form>
 				</section>
 

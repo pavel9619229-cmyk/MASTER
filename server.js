@@ -13,7 +13,6 @@ const io = new Server(server, {
 	},
 });
 
-// Trust Railway's proxy so secure cookies work over HTTPS
 app.set("trust proxy", 1);
 
 const sessionMiddleware = session({
@@ -25,36 +24,31 @@ const sessionMiddleware = session({
 		httpOnly: true,
 		sameSite: "lax",
 		secure: process.env.NODE_ENV === "production",
-		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+		maxAge: 7 * 24 * 60 * 60 * 1000,
 	},
 });
 
 app.use(sessionMiddleware);
 app.use(express.urlencoded({ extended: false }));
-app.use(ensureCustomerIdentity);
 
-// Share express session with socket.io
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-function requireMasterAuth(req, res, next) {
-	if (req.session && req.session.isMaster) return next();
-	res.redirect("/login");
-}
-
 const PORT = process.env.PORT || 3000;
-const DAYS_TO_SHOW = 7;
-const ALL_WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const SLOT_MINUTES = 15;
 const CLIENT_COOKIE_NAME = "client_id";
+const MASTER_PAST_DAYS = 31;
+const MASTER_FUTURE_DAYS = 62;
+const CUSTOMER_FUTURE_DAYS = 28;
 
 const state = {
 	settings: {
-		startHour: 12,
-		endHour: 14,
-		slotMinutes: 60,
-		workDays: [2, 5],
+		startHour: 9,
+		endHour: 18,
+		slotMinutes: SLOT_MINUTES,
 	},
+	weekWorkDays: {},
 	slots: {},
 };
 
@@ -66,92 +60,41 @@ function dateKey(date) {
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function makeSlotId(datePart, hour, minute) {
-	return `${datePart}T${pad(hour)}:${pad(minute)}`;
+function parseDateKey(value) {
+	const [y, m, d] = String(value || "").split("-").map(Number);
+	if (!y || !m || !d) return null;
+	return new Date(y, m - 1, d);
 }
 
-function buildWeekDates() {
-	const days = [];
-	const now = new Date();
-	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-	for (let i = 0; i < DAYS_TO_SHOW; i += 1) {
-		const d = new Date(start);
-		d.setDate(start.getDate() + i);
-		days.push(d);
-	}
-
-	return days;
+function startOfDay(date) {
+	return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-function buildSlots(settings) {
-	const { startHour, endHour, slotMinutes, workDays = [1, 2, 3, 4, 5] } = settings;
-	const slots = {};
-	const dates = buildWeekDates();
-
-	for (const day of dates) {
-		if (!workDays.includes(day.getDay())) {
-			continue;
-		}
-
-		const dayId = dateKey(day);
-		let totalMinutes = startHour * 60;
-		const endMinutes = endHour * 60;
-
-		while (totalMinutes + slotMinutes <= endMinutes) {
-			const hour = Math.floor(totalMinutes / 60);
-			const minute = totalMinutes % 60;
-			const slotId = makeSlotId(dayId, hour, minute);
-
-			slots[slotId] = {
-				status: "free",
-				customerName: "",
-				customerPhone: "",
-				updatedAt: new Date().toISOString(),
-			};
-
-			totalMinutes += slotMinutes;
-		}
-	}
-
-	return slots;
+function addDays(date, days) {
+	const d = new Date(date);
+	d.setDate(d.getDate() + days);
+	return d;
 }
 
-function validateSettings(next) {
-	const startHour = Number(next.startHour);
-	const endHour = Number(next.endHour);
-	const slotMinutes = Number(next.slotMinutes);
-	const workDays = Array.isArray(next.workDays)
-		? next.workDays.map(Number)
-		: Array.isArray(next.offDays)
-			? ALL_WEEK_DAYS.filter((d) => !next.offDays.map(Number).includes(d))
-			: [1, 2, 3, 4, 5];
-
-	if (!Number.isInteger(startHour) || !Number.isInteger(endHour) || !Number.isInteger(slotMinutes)) {
-		return { ok: false, error: "Параметры должны быть целыми числами." };
-	}
-
-	if (startHour < 0 || endHour > 24 || startHour >= endHour) {
-		return { ok: false, error: "Проверьте начало и конец рабочего дня." };
-	}
-
-	if (![15, 30, 60].includes(slotMinutes)) {
-		return { ok: false, error: "Длительность слота: 15, 30 или 60 минут." };
-	}
-
-	if (workDays.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) {
-		return { ok: false, error: "Некорректные рабочие дни." };
-	}
-
-	if (workDays.length === 0) {
-		return { ok: false, error: "Выберите хотя бы один рабочий день." };
-	}
-
-	return { ok: true, value: { startHour, endHour, slotMinutes, workDays } };
+function startOfWeek(date) {
+	const d = startOfDay(date);
+	const day = (d.getDay() + 6) % 7;
+	d.setDate(d.getDate() - day);
+	return d;
 }
 
-function normalizeStatus(status) {
-	return status === "busy" ? "rejected" : status;
+function weekKeyFromDate(date) {
+	return dateKey(startOfWeek(date));
+}
+
+function timePartFromMinutes(totalMinutes) {
+	const hour = Math.floor(totalMinutes / 60);
+	const minute = totalMinutes % 60;
+	return `${pad(hour)}:${pad(minute)}`;
+}
+
+function baseKey(datePart, timePart) {
+	return `${datePart}T${timePart}`;
 }
 
 function generateId() {
@@ -199,16 +142,12 @@ function getOrCreateCustomerId(requestObj) {
 }
 
 function ensureCustomerIdentity(req, res, next) {
-	if (req.session && req.session.isMaster) {
-		return next();
-	}
+	if (req.session && req.session.isMaster) return next();
 
 	const cookieCustomerId = getCustomerIdFromCookieHeader(req.headers && req.headers.cookie);
 	const customerId = cookieCustomerId || req.session?.customerId || generateId();
 
-	if (req.session) {
-		req.session.customerId = customerId;
-	}
+	if (req.session) req.session.customerId = customerId;
 
 	if (!cookieCustomerId) {
 		res.cookie(CLIENT_COOKIE_NAME, customerId, {
@@ -223,34 +162,182 @@ function ensureCustomerIdentity(req, res, next) {
 	next();
 }
 
+app.use(ensureCustomerIdentity);
+
+function normalizeStatus(status) {
+	return status === "busy" ? "rejected" : status;
+}
+
+function createSlot({ id, datePart, timePart, kind = "primary", linkedPrimaryId = "" }) {
+	return {
+		id,
+		baseKey: baseKey(datePart, timePart),
+		datePart,
+		timePart,
+		kind,
+		linkedPrimaryId,
+		status: "free",
+		customerId: "",
+		customerName: "",
+		customerPhone: "",
+		customerComment: "",
+		comment: "",
+		history: [],
+		updatedAt: new Date().toISOString(),
+	};
+}
+
+function getPrimarySlotByBase(base) {
+	return Object.values(state.slots).find((s) => s.baseKey === base && s.kind === "primary") || null;
+}
+
+function getExtraSlotForPrimary(primaryId) {
+	return Object.values(state.slots).find((s) => s.kind === "extra" && s.linkedPrimaryId === primaryId) || null;
+}
+
+function ensurePrimarySlot(datePart, timePart) {
+	const base = baseKey(datePart, timePart);
+	const exists = getPrimarySlotByBase(base);
+	if (exists) return exists;
+	const id = `${base}#p`;
+	state.slots[id] = createSlot({ id, datePart, timePart, kind: "primary" });
+	return state.slots[id];
+}
+
+function ensureWeekSlots(weekKey) {
+	const weekStart = parseDateKey(weekKey);
+	if (!weekStart) return;
+	const workDays = Array.isArray(state.weekWorkDays[weekKey]) ? state.weekWorkDays[weekKey] : [];
+
+	for (let i = 0; i < 7; i += 1) {
+		const d = addDays(weekStart, i);
+		if (!workDays.includes(d.getDay())) continue;
+		const dayId = dateKey(d);
+		let totalMinutes = state.settings.startHour * 60;
+		const endMinutes = state.settings.endHour * 60;
+		while (totalMinutes + SLOT_MINUTES <= endMinutes) {
+			ensurePrimarySlot(dayId, timePartFromMinutes(totalMinutes));
+			totalMinutes += SLOT_MINUTES;
+		}
+	}
+}
+
+function initDefaultWeeks() {
+	const today = startOfDay(new Date());
+	const start = addDays(today, -MASTER_PAST_DAYS);
+	const end = addDays(today, MASTER_FUTURE_DAYS);
+	for (let d = startOfWeek(start); d <= end; d = addDays(d, 7)) {
+		const wk = dateKey(d);
+		if (!state.weekWorkDays[wk]) {
+			state.weekWorkDays[wk] = [2, 5];
+		}
+		ensureWeekSlots(wk);
+	}
+}
+
+initDefaultWeeks();
+
+function mapCustomerStatus(slot, belongsToCustomer) {
+	if (belongsToCustomer) {
+		if (slot.status === "split") return "confirmed";
+		return slot.status;
+	}
+	if (slot.status === "free") return "free";
+	return "busy";
+}
+
+function inRange(datePart, rangeStart, rangeEnd) {
+	const d = parseDateKey(datePart);
+	if (!d) return false;
+	return d >= rangeStart && d <= rangeEnd;
+}
+
+function sanitizeSlotForCustomer(slot, customerId) {
+	const belongs = slot.customerId && slot.customerId === customerId;
+	return {
+		id: slot.id,
+		baseKey: slot.baseKey,
+		datePart: slot.datePart,
+		timePart: slot.timePart,
+		kind: slot.kind,
+		status: mapCustomerStatus(slot, belongs),
+		updatedAt: slot.updatedAt,
+		customerComment: belongs ? slot.customerComment || "" : "",
+		comment: belongs ? slot.comment || "" : "",
+		history: belongs ? (slot.history || []) : [],
+	};
+}
+
 function buildStateForSocket(socket) {
 	const sessionObj = socket.request.session;
-	const master = !!(sessionObj && sessionObj.isMaster);
-	if (master) {
-		return state;
-	}
+	const isMaster = !!(sessionObj && sessionObj.isMaster);
+	const today = startOfDay(new Date());
+	const masterRangeStart = addDays(today, -MASTER_PAST_DAYS);
+	const masterRangeEnd = addDays(today, MASTER_FUTURE_DAYS);
+	const customerRangeStart = today;
+	const customerRangeEnd = addDays(today, CUSTOMER_FUTURE_DAYS);
 
-	const currentCustomerId = getOrCreateCustomerId(socket.request);
-	const safeSlots = {};
-
-	for (const [slotId, slot] of Object.entries(state.slots)) {
-		const belongsToCurrentCustomer = slot.customerId && slot.customerId === currentCustomerId;
-		const statusForCustomer = belongsToCurrentCustomer
-			? slot.status
-			: (slot.status === "requested" || slot.status === "confirmed" ? "busy" : slot.status);
-
-		safeSlots[slotId] = {
-			status: statusForCustomer,
-			updatedAt: slot.updatedAt,
-			customerComment: belongsToCurrentCustomer ? slot.customerComment || "" : "",
-			comment: belongsToCurrentCustomer ? slot.comment || "" : "",
-			history: belongsToCurrentCustomer ? (slot.history || []) : [],
+	if (isMaster) {
+		const masterSlots = {};
+		Object.values(state.slots).forEach((slot) => {
+			if (!inRange(slot.datePart, masterRangeStart, masterRangeEnd)) return;
+			masterSlots[slot.id] = slot;
+		});
+		return {
+			settings: state.settings,
+			weekWorkDays: state.weekWorkDays,
+			slots: masterSlots,
+			meta: {
+				mode: "master",
+				rangeStart: dateKey(masterRangeStart),
+				rangeEnd: dateKey(masterRangeEnd),
+				today: dateKey(today),
+				slotMinutes: SLOT_MINUTES,
+			},
 		};
 	}
 
+	const currentCustomerId = getOrCreateCustomerId(socket.request);
+	const grouped = {};
+	Object.values(state.slots).forEach((slot) => {
+		if (!inRange(slot.datePart, customerRangeStart, customerRangeEnd)) return;
+		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
+		grouped[slot.baseKey].push(slot);
+	});
+
+	const customerSlots = {};
+	Object.values(grouped).forEach((group) => {
+		const owned = group.filter((s) => s.customerId && s.customerId === currentCustomerId);
+		if (owned.length > 0) {
+			owned.forEach((slot) => {
+				customerSlots[slot.id] = sanitizeSlotForCustomer(slot, currentCustomerId);
+			});
+			return;
+		}
+
+		const extras = group.filter((s) => s.kind === "extra");
+		if (extras.length > 0) {
+			const candidate = extras.find((s) => s.status === "free") || extras[0];
+			customerSlots[candidate.id] = sanitizeSlotForCustomer(candidate, currentCustomerId);
+			return;
+		}
+
+		const primary = group.find((s) => s.kind === "primary") || group[0];
+		if (primary) {
+			customerSlots[primary.id] = sanitizeSlotForCustomer(primary, currentCustomerId);
+		}
+	});
+
 	return {
 		settings: state.settings,
-		slots: safeSlots,
+		slots: customerSlots,
+		meta: {
+			mode: "customer",
+			rangeStart: dateKey(customerRangeStart),
+			rangeEnd: dateKey(customerRangeEnd),
+			today: dateKey(today),
+			slotMinutes: SLOT_MINUTES,
+		},
 	};
 }
 
@@ -260,7 +347,39 @@ function emitState() {
 	});
 }
 
-state.slots = buildSlots(state.settings);
+function resetSlot(slot) {
+	slot.status = "free";
+	slot.customerId = "";
+	slot.customerName = "";
+	slot.customerPhone = "";
+	slot.customerComment = "";
+	slot.comment = "";
+	slot.updatedAt = new Date().toISOString();
+}
+
+function ensureExtraSlot(primarySlot) {
+	let extra = getExtraSlotForPrimary(primarySlot.id);
+	if (!extra) {
+		const id = `${primarySlot.baseKey}#e1`;
+		extra = createSlot({
+			id,
+			datePart: primarySlot.datePart,
+			timePart: primarySlot.timePart,
+			kind: "extra",
+			linkedPrimaryId: primarySlot.id,
+		});
+		state.slots[id] = extra;
+	}
+	return extra;
+}
+
+function tryRemoveUnusedExtra(primarySlot) {
+	const extra = getExtraSlotForPrimary(primarySlot.id);
+	if (!extra) return;
+	if (extra.status === "free" && !extra.customerId) {
+		delete state.slots[extra.id];
+	}
+}
 
 io.on("connection", (socket) => {
 	socket.emit("state", buildStateForSocket(socket));
@@ -270,40 +389,30 @@ io.on("connection", (socket) => {
 	}
 
 	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
-		const customerId = getOrCreateCustomerId(socket.request);
-
-		const normalizedSelected = normalizeStatus(selectedStatus);
-		if (normalizedSelected !== "requested" && normalizedSelected !== "free") {
-			return;
-		}
-
 		const slot = state.slots[slotId];
-		const ownedByCurrentCustomer = slot.customerId && slot.customerId === customerId;
+		if (!slot) return;
 
-		// A customer can only reserve a free slot or modify their own reservation.
+		const customerId = getOrCreateCustomerId(socket.request);
+		const normalizedSelected = normalizeStatus(selectedStatus);
+		if (normalizedSelected !== "requested" && normalizedSelected !== "free") return;
+
+		const ownedByCurrentCustomer = slot.customerId && slot.customerId === customerId;
 		if (!ownedByCurrentCustomer && slot.status !== "free") {
 			socket.emit("error:message", "Этот слот уже занят другим клиентом.");
 			return;
 		}
 
 		if (normalizedSelected === "requested") {
-			const safeName = String(customerName || "").trim();
-			const safePhone = String(customerPhone || "").trim();
-
 			slot.status = "requested";
 			slot.customerId = customerId;
-			slot.customerName = safeName || slot.customerName || "";
-			slot.customerPhone = safePhone || slot.customerPhone || "";
+			slot.customerName = String(customerName || "").trim().slice(0, 60);
+			slot.customerPhone = String(customerPhone || "").trim().slice(0, 40);
 		} else {
-			slot.status = "free";
-			slot.customerId = "";
-			slot.customerName = "";
-			slot.customerPhone = "";
-			slot.customerComment = "";
-			slot.comment = "";
+			if (!ownedByCurrentCustomer) {
+				socket.emit("error:message", "Нельзя отменить чужую запись.");
+				return;
+			}
+			resetSlot(slot);
 		}
 
 		slot.history = [
@@ -313,8 +422,6 @@ io.on("connection", (socket) => {
 				by: "customer",
 				customerId,
 				toStatus: slot.status,
-				customerName: slot.customerName || "",
-				customerPhone: slot.customerPhone || "",
 			},
 		];
 		slot.updatedAt = new Date().toISOString();
@@ -323,45 +430,50 @@ io.on("connection", (socket) => {
 
 	socket.on("executor:confirmSlot", ({ slotId, selectedStatus }) => {
 		if (!isMaster()) return;
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
 		const slot = state.slots[slotId];
-		const allowedStatuses = ["free", "requested", "confirmed", "rejected"];
-		const normalizedSelected = normalizeStatus(selectedStatus);
-		const confirmedStatus = allowedStatuses.includes(normalizedSelected)
-			? normalizedSelected
-			: normalizeStatus(slot.status);
+		if (!slot) return;
 
-		slot.status = confirmedStatus;
+		const allowedStatuses = ["free", "requested", "confirmed", "rejected", "split"];
+		const normalizedSelected = normalizeStatus(selectedStatus);
+		if (!allowedStatuses.includes(normalizedSelected)) return;
+
+		if (normalizedSelected === "split") {
+			if (slot.kind !== "primary") {
+				socket.emit("error:message", "Статус 'частично' доступен только для основного слота.");
+				return;
+			}
+			slot.status = "split";
+			ensureExtraSlot(slot);
+		} else if (normalizedSelected === "free") {
+			resetSlot(slot);
+			if (slot.kind === "primary") {
+				tryRemoveUnusedExtra(slot);
+			}
+		} else {
+			slot.status = normalizedSelected;
+			if (slot.kind === "primary" && normalizedSelected !== "split") {
+				tryRemoveUnusedExtra(slot);
+			}
+		}
+
 		slot.history = [
 			...(slot.history || []),
 			{
 				at: new Date().toISOString(),
 				by: "executor",
 				customerId: slot.customerId || "",
-				toStatus: confirmedStatus,
+				toStatus: slot.status,
 			},
 		];
-		if (confirmedStatus === "free") {
-			slot.customerId = "";
-			slot.customerName = "";
-			slot.customerPhone = "";
-			slot.customerComment = "";
-			slot.comment = "";
-		}
 		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
 
 	socket.on("executor:setComment", ({ slotId, comment }) => {
 		if (!isMaster()) return;
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
 		const slot = state.slots[slotId];
-		const safeComment = String(comment || "").trim().slice(0, 300);
-		slot.comment = safeComment;
+		if (!slot) return;
+		slot.comment = String(comment || "").trim().slice(0, 300);
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -369,7 +481,7 @@ io.on("connection", (socket) => {
 				by: "executor",
 				customerId: slot.customerId || "",
 				kind: "comment",
-				comment: safeComment,
+				comment: slot.comment,
 			},
 		];
 		slot.updatedAt = new Date().toISOString();
@@ -377,17 +489,14 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("customer:setComment", ({ slotId, comment }) => {
-		if (!slotId || !state.slots[slotId]) {
-			return;
-		}
-		const customerId = getOrCreateCustomerId(socket.request);
 		const slot = state.slots[slotId];
+		if (!slot) return;
+		const customerId = getOrCreateCustomerId(socket.request);
 		if (!slot.customerId || slot.customerId !== customerId) {
 			socket.emit("error:message", "Нельзя менять комментарий в чужом слоте.");
 			return;
 		}
-		const safeComment = String(comment || "").trim().slice(0, 300);
-		slot.customerComment = safeComment;
+		slot.customerComment = String(comment || "").trim().slice(0, 300);
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -395,15 +504,37 @@ io.on("connection", (socket) => {
 				by: "customer",
 				customerId,
 				kind: "comment",
-				comment: safeComment,
+				comment: slot.customerComment,
 			},
 		];
 		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
+
+	socket.on("executor:updateWeekWorkDays", ({ weekStart, workDays }) => {
+		if (!isMaster()) return;
+		const weekDate = parseDateKey(weekStart);
+		if (!weekDate) {
+			socket.emit("error:message", "Некорректная неделя.");
+			return;
+		}
+		const safeDays = Array.isArray(workDays)
+			? [...new Set(workDays.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
+			: [];
+		const weekKey = dateKey(startOfWeek(weekDate));
+		const prevDays = Array.isArray(state.weekWorkDays[weekKey]) ? state.weekWorkDays[weekKey] : [];
+		const merged = [...new Set([...prevDays, ...safeDays])].sort((a, b) => a - b);
+		state.weekWorkDays[weekKey] = merged;
+		ensureWeekSlots(weekKey);
+		emitState();
+	});
 });
 
-// Auth routes
+function requireMasterAuth(req, res, next) {
+	if (req.session && req.session.isMaster) return next();
+	res.redirect("/login");
+}
+
 app.get("/login", (req, res) => {
 	if (req.session && req.session.isMaster) return res.redirect("/master");
 	res.sendFile(path.join(__dirname, "public", "login.html"));
@@ -413,7 +544,6 @@ app.post("/login", (req, res) => {
 	const { email, password } = req.body;
 	const MASTER_EMAIL = process.env.MASTER_EMAIL || "master@example.com";
 	const MASTER_PASSWORD = process.env.MASTER_PASSWORD || "changeme";
-
 	if (
 		typeof email === "string" && typeof password === "string" &&
 		email.trim().toLowerCase() === MASTER_EMAIL.trim().toLowerCase() &&
@@ -429,7 +559,6 @@ app.post("/logout", (req, res) => {
 	req.session.destroy(() => res.redirect("/login"));
 });
 
-// Master page (protected)
 app.get("/master", requireMasterAuth, (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "master.html"));
 });
