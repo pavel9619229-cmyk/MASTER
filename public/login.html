@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Вход — Мастер</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="background-pattern"></div>
+		<main class="login-layout">
+			<div class="panel login-panel">
+				<p class="eyebrow">Онлайн-календарь</p>
+				<h1>Вход для мастера</h1>
+				<form class="login-form" method="POST" action="/login">
+					<label class="login-label">
+						Email
+						<input
+							type="email"
+							name="email"
+							placeholder="your@email.com"
+							required
+							autocomplete="username"
+							class="login-input"
+						/>
+					</label>
+					<label class="login-label">
+						Пароль
+						<input
+							type="password"
+							name="password"
+							required
+							autocomplete="current-password"
+							class="login-input"
+						/>
+					</label>
+					<div id="login-error" class="login-error hidden">Неверный email или пароль.</div>
+					<button type="submit" class="btn primary login-btn">Войти</button>
+				</form>
+				<p class="login-hint">Страница клиента доступна по <a href="/">главной ссылке</a>.</p>
+			</div>
+		</main>
+		<script>
+			if (location.search.includes("error=1")) {
+				document.getElementById("login-error").classList.remove("hidden");
+			}
+		</script>
+	</body>
+</html>

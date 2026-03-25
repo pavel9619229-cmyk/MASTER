@@ -1,6 +1,5 @@
 const socket = io();
 
-const roleSelect = document.getElementById("role");
 const calendarWrapper = document.getElementById("calendar-wrapper");
 const hint = document.getElementById("hint");
 const customerData = document.getElementById("customer-data");
@@ -26,7 +25,7 @@ let appState = {
 	slots: {},
 };
 
-let role = "customer";
+let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let executorDraftStatuses = {};
 let customerDraftStatuses = {};
 let executorDraftComments = {};
@@ -355,8 +354,8 @@ function renderCalendar() {
 			const confirmBy = btn.getAttribute("data-confirm-by");
 			if (confirmBy === "customer") {
 				const selectedStatus = customerDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId]?.status);
-				const customerName = customerNameInput.value.trim();
-				const customerPhone = customerPhoneInput.value.trim();
+		const customerName = (customerNameInput ? customerNameInput.value.trim() : "");
+			const customerPhone = (customerPhoneInput ? customerPhoneInput.value.trim() : "");
 				socket.emit("customer:confirmSlot", {
 					slotId,
 					selectedStatus,
@@ -374,26 +373,15 @@ function renderCalendar() {
 }
 
 function renderRoleState() {
-	const executorMode = role === "executor";
-	customerData.classList.toggle("hidden", executorMode);
-	settingsSection.classList.toggle("hidden", !executorMode);
-
-	settingsForm.querySelectorAll("input:not([name='workDay']), select, button").forEach((el) => {
-		el.disabled = !executorMode;
-	});
-
-	settingsForm.querySelectorAll("input[name='workDay']").forEach((el) => {
-		el.disabled = false;
-	});
-
 	if (role === "customer") {
-		setHint("КЛИЕНТ: клик по слоту выбирает черновой статус, кнопка Подтвердить применяет его.");
+		setHint("Нажмите на свободный слот, чтобы записаться.");
 	} else {
 		setHint("МАСТЕР: клик по слоту выбирает черновой статус, кнопка Подтвердить применяет его.");
 	}
 }
 
 function fillSettingsForm() {
+	if (!startHourInput || !endHourInput || !slotMinutesSelect) return;
 	startHourInput.value = appState.settings.startHour;
 	endHourInput.value = appState.settings.endHour;
 	slotMinutesSelect.value = String(appState.settings.slotMinutes);
@@ -409,20 +397,7 @@ function fillSettingsForm() {
 	});
 }
 
-roleSelect.addEventListener("change", (event) => {
-	role = event.target.value;
-	if (role !== "executor") {
-		executorDraftStatuses = {};
-		executorDraftComments = {};
-	}
-	if (role !== "customer") {
-		customerDraftStatuses = {};
-		customerDraftComments = {};
-	}
-	renderRoleState();
-	renderCalendar();
-});
-
+if (customerPhoneInput) {
 customerPhoneInput.addEventListener("focus", () => {
 	if (!customerPhoneInput.value.trim()) {
 		customerPhoneInput.value = PHONE_PREFIX;
@@ -432,7 +407,9 @@ customerPhoneInput.addEventListener("focus", () => {
 customerPhoneInput.addEventListener("input", () => {
 	customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
 });
+}
 
+if (settingsForm) {
 settingsForm.addEventListener("submit", (event) => {
 	event.preventDefault();
 
@@ -451,6 +428,7 @@ settingsForm.addEventListener("submit", (event) => {
 
 	setHint("Рабочие часы обновлены. Календарь перестроен.");
 });
+}
 
 socket.on("state", (nextState) => {
 	appState = nextState;
@@ -467,7 +445,7 @@ socket.on("error:message", (message) => {
 	setHint(message);
 });
 
-if (!customerPhoneInput.value.trim()) {
+if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 	customerPhoneInput.value = PHONE_PREFIX;
 }
 

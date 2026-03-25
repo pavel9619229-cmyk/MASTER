@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Запись — Мастер</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="styles.css" />
+		<script>window.PAGE_ROLE = "executor";</script>
+	</head>
+	<body>
+		<div class="background-pattern"></div>
+
+		<main class="layout">
+			<section class="panel panel-main">
+				<header class="header">
+					<p class="eyebrow">Онлайн-календарь — Мастер</p>
+					<h1>Запись на услугу</h1>
+					<p class="subtitle">
+						Клик по слоту выбирает статус, кнопка Подтвердить применяет его.
+					</p>
+				</header>
+
+				<div class="toolbar master-toolbar">
+					<form method="POST" action="/logout" style="margin:0">
+						<button type="submit" class="btn logout-btn">Выйти</button>
+					</form>
+				</div>
+
+				<div id="calendar-wrapper" class="calendar-wrapper"></div>
+			</section>
+
+			<aside class="panel panel-side">
+				<section id="settings-section">
+					<h2>Рабочие часы</h2>
+					<form id="settings-form" class="settings-form">
+						<label>
+							Начало
+							<input id="startHour" type="number" min="0" max="23" value="12" />
+						</label>
+						<label>
+							Конец
+							<input id="endHour" type="number" min="1" max="24" value="14" />
+						</label>
+						<label>
+							Слот (мин)
+							<select id="slotMinutes">
+								<option value="15">15</option>
+								<option value="30">30</option>
+								<option value="60" selected>60</option>
+							</select>
+						</label>
+						<fieldset class="workdays-fieldset">
+							<legend>Рабочие дни</legend>
+							<div class="workdays-group">
+								<label class="day-label"><input type="checkbox" name="workDay" value="1" /><span>Пн</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="2" checked /><span>Вт</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="3" /><span>Ср</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="4" /><span>Чт</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="5" checked /><span>Пт</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="6" /><span>Сб</span></label>
+								<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
+							</div>
+						</fieldset>
+						<button type="submit" class="btn primary">Применить</button>
+					</form>
+				</section>
+
+				<p id="hint" class="hint"></p>
+			</aside>
+		</main>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="app.js"></script>
+	</body>
+</html>

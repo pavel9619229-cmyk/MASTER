@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const http = require("http");
+const session = require("express-session");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -11,6 +12,35 @@ const io = new Server(server, {
 		methods: ["GET", "POST"],
 	},
 });
+
+// Trust Railway's proxy so secure cookies work over HTTPS
+app.set("trust proxy", 1);
+
+const sessionMiddleware = session({
+	secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
+	resave: false,
+	saveUninitialized: false,
+	proxy: true,
+	cookie: {
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+	},
+});
+
+app.use(sessionMiddleware);
+app.use(express.urlencoded({ extended: false }));
+
+// Share express session with socket.io
+io.use((socket, next) => {
+	sessionMiddleware(socket.request, socket.request.res || {}, next);
+});
+
+function requireMasterAuth(req, res, next) {
+	if (req.session && req.session.isMaster) return next();
+	res.redirect("/login");
+}
 
 const PORT = process.env.PORT || 3000;
 const DAYS_TO_SHOW = 7;
@@ -131,6 +161,10 @@ state.slots = buildSlots(state.settings);
 io.on("connection", (socket) => {
 	socket.emit("state", state);
 
+	function isMaster() {
+		return !!(socket.request.session && socket.request.session.isMaster);
+	}
+
 	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
@@ -169,6 +203,7 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("executor:confirmSlot", ({ slotId, selectedStatus }) => {
+		if (!isMaster()) return;
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
@@ -192,6 +227,7 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("executor:setComment", ({ slotId, comment }) => {
+		if (!isMaster()) return;
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
@@ -228,6 +264,37 @@ io.on("connection", (socket) => {
 		state.slots[slotId].updatedAt = new Date().toISOString();
 		emitState();
 	});
+});
+
+// Auth routes
+app.get("/login", (req, res) => {
+	if (req.session && req.session.isMaster) return res.redirect("/master");
+	res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+app.post("/login", (req, res) => {
+	const { email, password } = req.body;
+	const MASTER_EMAIL = process.env.MASTER_EMAIL || "master@example.com";
+	const MASTER_PASSWORD = process.env.MASTER_PASSWORD || "changeme";
+
+	if (
+		typeof email === "string" && typeof password === "string" &&
+		email.trim().toLowerCase() === MASTER_EMAIL.trim().toLowerCase() &&
+		password === MASTER_PASSWORD
+	) {
+		req.session.isMaster = true;
+		return res.redirect("/master");
+	}
+	res.redirect("/login?error=1");
+});
+
+app.post("/logout", (req, res) => {
+	req.session.destroy(() => res.redirect("/login"));
+});
+
+// Master page (protected)
+app.get("/master", requireMasterAuth, (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "master.html"));
 });
 
 app.use(express.static(path.join(__dirname, "public")));

@@ -11,6 +11,7 @@
 			rel="stylesheet"
 		/>
 		<link rel="stylesheet" href="styles.css" />
+		<script>window.PAGE_ROLE = "customer";</script>
 	</head>
 	<body>
 		<div class="background-pattern"></div>
@@ -21,22 +22,14 @@
 					<p class="eyebrow">Онлайн-календарь</p>
 					<h1>Запись на услугу</h1>
 					<p class="subtitle">
-						Статус слота меняется при каждом клике: цвет и подпись обновляются сразу для КЛИЕНТА и МАСТЕРА.
+						Нажмите на свободный слот, чтобы записаться, или отмените уже сделанную запись.
 					</p>
 				</header>
 
 				<div class="toolbar">
-					<div class="role-switch">
-						<label for="role">Режим:</label>
-						<select id="role">
-							<option value="customer">КЛИЕНТ</option>
-							<option value="executor">МАСТЕР</option>
-						</select>
-					</div>
-
 					<div id="customer-data" class="customer-data">
 						<label>
-							Имя КЛИЕНТА
+							Ваше имя
 							<input id="customerName" type="text" maxlength="60" placeholder="Например, Иван" />
 						</label>
 						<label>
@@ -50,41 +43,6 @@
 			</section>
 
 			<aside class="panel panel-side">
-				<section id="settings-section">
-					<h2>Рабочие часы МАСТЕРА</h2>
-					<form id="settings-form" class="settings-form">
-						<label>
-							Начало
-							<input id="startHour" type="number" min="0" max="23" value="12" />
-						</label>
-						<label>
-							Конец
-							<input id="endHour" type="number" min="1" max="24" value="14" />
-						</label>
-						<label>
-							Слот (мин)
-							<select id="slotMinutes">
-								<option value="15">15</option>
-								<option value="30">30</option>
-								<option value="60" selected>60</option>
-							</select>
-						</label>
-						<fieldset class="workdays-fieldset">
-							<legend>Рабочие дни</legend>
-							<div class="workdays-group">
-								<label class="day-label"><input type="checkbox" name="workDay" value="1" /><span>Пн</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="2" checked /><span>Вт</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="3" /><span>Ср</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="4" /><span>Чт</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="5" checked /><span>Пт</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="6" /><span>Сб</span></label>
-								<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
-							</div>
-						</fieldset>
-						<button type="submit" class="btn primary">Применить</button>
-					</form>
-				</section>
-
 				<p id="hint" class="hint"></p>
 			</aside>
 		</main>
