@@ -110,6 +110,7 @@ h1 {
 	gap: 6px;
 	color: var(--muted);
 	font-weight: 600;
+	min-width: 0;
 }
 
 .customer-data input {
@@ -119,6 +120,7 @@ h1 {
 	padding: 8px 10px;
 	font-family: inherit;
 	min-width: 210px;
+	width: 100%;
 }
 
 .role-switch select,
@@ -443,5 +445,86 @@ h1 {
 
 	.customer-data input {
 		min-width: 170px;
+	}
+}
+
+@media (max-width: 760px) {
+	.panel-main,
+	.panel-side {
+		padding: 16px;
+	}
+
+	.toolbar {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.role-switch {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.role-switch select {
+		width: 100%;
+	}
+
+	.customer-data {
+		width: 100%;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.customer-data label {
+		width: 100%;
+	}
+
+	.settings-form {
+		gap: 12px;
+	}
+
+	.settings-form input,
+	.settings-form select,
+	.settings-form button {
+		width: 100%;
+	}
+
+	.calendar {
+		min-width: 720px;
+	}
+}
+
+@media (max-width: 560px) {
+	body {
+		font-size: 15px;
+	}
+
+	.layout {
+		padding: 12px;
+		gap: 14px;
+	}
+
+	h1 {
+		font-size: 24px;
+	}
+
+	.subtitle {
+		font-size: 14px;
+	}
+
+	.slot-comment-form {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 6px;
+	}
+
+	.slot-comment-send-btn {
+		width: 100%;
+	}
+
+	.calendar {
+		min-width: 640px;
 	}
 }
