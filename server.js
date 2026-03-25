@@ -152,14 +152,59 @@ function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
 }
 
+function generateId() {
+	return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getOrCreateCustomerId(sessionObj) {
+	if (!sessionObj) return null;
+	if (!sessionObj.customerId) {
+		sessionObj.customerId = generateId();
+	}
+	return sessionObj.customerId;
+}
+
+function buildStateForSocket(socket) {
+	const sessionObj = socket.request.session;
+	const master = !!(sessionObj && sessionObj.isMaster);
+	if (master) {
+		return state;
+	}
+
+	const currentCustomerId = getOrCreateCustomerId(sessionObj);
+	const safeSlots = {};
+
+	for (const [slotId, slot] of Object.entries(state.slots)) {
+		const belongsToCurrentCustomer = slot.customerId && slot.customerId === currentCustomerId;
+		const statusForCustomer = belongsToCurrentCustomer
+			? slot.status
+			: (slot.status === "requested" || slot.status === "confirmed" ? "busy" : slot.status);
+
+		safeSlots[slotId] = {
+			status: statusForCustomer,
+			updatedAt: slot.updatedAt,
+			customerComment: belongsToCurrentCustomer ? slot.customerComment || "" : "",
+			comment: belongsToCurrentCustomer ? slot.comment || "" : "",
+			history: belongsToCurrentCustomer ? (slot.history || []) : [],
+		};
+	}
+
+	return {
+		settings: state.settings,
+		slots: safeSlots,
+	};
+}
+
 function emitState() {
-	io.emit("state", state);
+	io.sockets.sockets.forEach((sock) => {
+		sock.emit("state", buildStateForSocket(sock));
+	});
 }
 
 state.slots = buildSlots(state.settings);
 
 io.on("connection", (socket) => {
-	socket.emit("state", state);
+	socket.emit("state", buildStateForSocket(socket));
 
 	function isMaster() {
 		return !!(socket.request.session && socket.request.session.isMaster);
@@ -169,9 +214,19 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
+		const customerId = getOrCreateCustomerId(socket.request.session);
 
 		const normalizedSelected = normalizeStatus(selectedStatus);
 		if (normalizedSelected !== "requested" && normalizedSelected !== "free") {
+			return;
+		}
+
+		const slot = state.slots[slotId];
+		const ownedByCurrentCustomer = slot.customerId && slot.customerId === customerId;
+
+		// A customer can only reserve a free slot or modify their own reservation.
+		if (!ownedByCurrentCustomer && slot.status !== "free") {
+			socket.emit("error:message", "Этот слот уже занят другим клиентом.");
 			return;
 		}
 
@@ -179,26 +234,31 @@ io.on("connection", (socket) => {
 			const safeName = String(customerName || "").trim();
 			const safePhone = String(customerPhone || "").trim();
 
-			state.slots[slotId].status = "requested";
-			state.slots[slotId].customerName = safeName || state.slots[slotId].customerName || "";
-			state.slots[slotId].customerPhone = safePhone || state.slots[slotId].customerPhone || "";
+			slot.status = "requested";
+			slot.customerId = customerId;
+			slot.customerName = safeName || slot.customerName || "";
+			slot.customerPhone = safePhone || slot.customerPhone || "";
 		} else {
-			state.slots[slotId].status = "free";
-			state.slots[slotId].customerName = "";
-			state.slots[slotId].customerPhone = "";
+			slot.status = "free";
+			slot.customerId = "";
+			slot.customerName = "";
+			slot.customerPhone = "";
+			slot.customerComment = "";
+			slot.comment = "";
 		}
 
-		state.slots[slotId].history = [
-			...(state.slots[slotId].history || []),
+		slot.history = [
+			...(slot.history || []),
 			{
 				at: new Date().toISOString(),
 				by: "customer",
-				toStatus: state.slots[slotId].status,
-				customerName: state.slots[slotId].customerName || "",
-				customerPhone: state.slots[slotId].customerPhone || "",
+				customerId,
+				toStatus: slot.status,
+				customerName: slot.customerName || "",
+				customerPhone: slot.customerPhone || "",
 			},
 		];
-		state.slots[slotId].updatedAt = new Date().toISOString();
+		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
 
@@ -207,22 +267,31 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
+		const slot = state.slots[slotId];
 		const allowedStatuses = ["free", "requested", "confirmed", "rejected"];
 		const normalizedSelected = normalizeStatus(selectedStatus);
 		const confirmedStatus = allowedStatuses.includes(normalizedSelected)
 			? normalizedSelected
-			: normalizeStatus(state.slots[slotId].status);
+			: normalizeStatus(slot.status);
 
-		state.slots[slotId].status = confirmedStatus;
-		state.slots[slotId].history = [
-			...(state.slots[slotId].history || []),
-			{ at: new Date().toISOString(), by: "executor", toStatus: confirmedStatus },
+		slot.status = confirmedStatus;
+		slot.history = [
+			...(slot.history || []),
+			{
+				at: new Date().toISOString(),
+				by: "executor",
+				customerId: slot.customerId || "",
+				toStatus: confirmedStatus,
+			},
 		];
 		if (confirmedStatus === "free") {
-			state.slots[slotId].customerName = "";
-			state.slots[slotId].customerPhone = "";
+			slot.customerId = "";
+			slot.customerName = "";
+			slot.customerPhone = "";
+			slot.customerComment = "";
+			slot.comment = "";
 		}
-		state.slots[slotId].updatedAt = new Date().toISOString();
+		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
 
@@ -231,18 +300,20 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
+		const slot = state.slots[slotId];
 		const safeComment = String(comment || "").trim().slice(0, 300);
-		state.slots[slotId].comment = safeComment;
-		state.slots[slotId].history = [
-			...(state.slots[slotId].history || []),
+		slot.comment = safeComment;
+		slot.history = [
+			...(slot.history || []),
 			{
 				at: new Date().toISOString(),
 				by: "executor",
+				customerId: slot.customerId || "",
 				kind: "comment",
 				comment: safeComment,
 			},
 		];
-		state.slots[slotId].updatedAt = new Date().toISOString();
+		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
 
@@ -250,18 +321,25 @@ io.on("connection", (socket) => {
 		if (!slotId || !state.slots[slotId]) {
 			return;
 		}
+		const customerId = getOrCreateCustomerId(socket.request.session);
+		const slot = state.slots[slotId];
+		if (!slot.customerId || slot.customerId !== customerId) {
+			socket.emit("error:message", "Нельзя менять комментарий в чужом слоте.");
+			return;
+		}
 		const safeComment = String(comment || "").trim().slice(0, 300);
-		state.slots[slotId].customerComment = safeComment;
-		state.slots[slotId].history = [
-			...(state.slots[slotId].history || []),
+		slot.customerComment = safeComment;
+		slot.history = [
+			...(slot.history || []),
 			{
 				at: new Date().toISOString(),
 				by: "customer",
+				customerId,
 				kind: "comment",
 				comment: safeComment,
 			},
 		];
-		state.slots[slotId].updatedAt = new Date().toISOString();
+		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
 });
