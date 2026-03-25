@@ -29,6 +29,8 @@ let appState = {
 let role = "customer";
 let executorDraftStatuses = {};
 let customerDraftStatuses = {};
+let executorDraftComments = {};
+let customerDraftComments = {};
 
 function setHint(text) {
 	hint.textContent = text;
@@ -132,6 +134,41 @@ function normalizeCustomerPhoneInput(value) {
 	return `${PHONE_PREFIX}${digitsOnly}`;
 }
 
+function getPersistedComment(slotId, commentBy) {
+	const slot = appState.slots[slotId] || {};
+	if (commentBy === "executor") {
+		return String(slot.comment || "");
+	}
+	return String(slot.customerComment || "");
+}
+
+function getDraftComment(slotId, commentBy) {
+	const drafts = commentBy === "executor" ? executorDraftComments : customerDraftComments;
+	return Object.prototype.hasOwnProperty.call(drafts, slotId)
+		? drafts[slotId]
+		: getPersistedComment(slotId, commentBy);
+}
+
+function hasStatusDraftChange(slotId, persistedStatus) {
+	if (role === "executor") {
+		if (!Object.prototype.hasOwnProperty.call(executorDraftStatuses, slotId)) {
+			return false;
+		}
+		return executorDraftStatuses[slotId] !== persistedStatus;
+	}
+
+	if (!Object.prototype.hasOwnProperty.call(customerDraftStatuses, slotId)) {
+		return false;
+	}
+	return customerDraftStatuses[slotId] !== persistedStatus;
+}
+
+function hasCommentDraftChange(slotId, commentBy) {
+	const persisted = getPersistedComment(slotId, commentBy);
+	const draft = getDraftComment(slotId, commentBy);
+	return draft !== persisted;
+}
+
 function handleSlotClick(slotId, slotStatus) {
 	if (!canClickSlot(slotStatus)) {
 		return;
@@ -184,6 +221,8 @@ function renderCalendar() {
 						: role === "customer" && customerDraftStatuses[slotId]
 							? customerDraftStatuses[slotId]
 							: normalizeStatus(slot.status);
+					const persistedStatus = normalizeStatus(slot.status);
+					const showStatusConfirmBtn = hasStatusDraftChange(slotId, persistedStatus);
 					const clickable = canClickSlot(normalizedStatus);
 					const showCustomerDetails =
 						role === "executor" &&
@@ -201,21 +240,22 @@ function renderCalendar() {
 
 					let commentHtml = "";
 					if (role === "executor") {
+						const draftComment = escapeHtml(getDraftComment(slotId, "executor"));
+						const showCommentSendBtn = hasCommentDraftChange(slotId, "executor");
 						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="executor">
-							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Комментарий мастера" value="${escapeHtml(slot.comment || "")}" />
-							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить">Отправить</button>
+							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Комментарий мастера" value="${draftComment}" />
+							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить" ${showCommentSendBtn ? "" : "hidden"}>Отправить</button>
 						</form>`;
 					} else if (role === "customer") {
+						const draftComment = escapeHtml(getDraftComment(slotId, "customer"));
+						const showCommentSendBtn = hasCommentDraftChange(slotId, "customer");
 						commentHtml = `<form class="slot-comment-form" data-comment-slot="${slotId}" data-comment-by="customer">
-							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Ваш комментарий" value="${escapeHtml(slot.customerComment || "")}" />
-							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить">Отправить</button>
+							<input class="slot-comment-input" type="text" maxlength="300" placeholder="Ваш комментарий" value="${draftComment}" />
+							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" title="Отправить" ${showCommentSendBtn ? "" : "hidden"}>Отправить</button>
 						</form>`;
 					}
 
-					const showConfirmBtn = role === "executor"
-						? (normalizedStatus === "requested" || clickable)
-						: clickable;
-					const confirmBtnHtml = showConfirmBtn
+					const confirmBtnHtml = showStatusConfirmBtn
 						? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slotId}" data-confirm-by="${role}" title="Подтвердить">Подтвердить</button>`
 						: "";
 
@@ -259,12 +299,25 @@ function renderCalendar() {
 
 	const commentForms = calendarWrapper.querySelectorAll(".slot-comment-form");
 	commentForms.forEach((form) => {
+		const slotId = form.getAttribute("data-comment-slot");
+		const commentBy = form.getAttribute("data-comment-by");
+		const input = form.querySelector(".slot-comment-input");
+		const sendBtn = form.querySelector(".slot-comment-send-btn");
+		if (slotId && commentBy && input && sendBtn) {
+			input.addEventListener("input", () => {
+				if (commentBy === "executor") {
+					executorDraftComments[slotId] = input.value;
+				} else if (commentBy === "customer") {
+					customerDraftComments[slotId] = input.value;
+				}
+
+				sendBtn.hidden = !hasCommentDraftChange(slotId, commentBy);
+			});
+		}
+
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			const slotId = form.getAttribute("data-comment-slot");
-			const commentBy = form.getAttribute("data-comment-by");
-			const input = form.querySelector(".slot-comment-input");
 			if (commentBy === "executor") {
 				socket.emit("executor:setComment", { slotId, comment: input.value });
 			} else if (commentBy === "customer") {
@@ -360,9 +413,11 @@ roleSelect.addEventListener("change", (event) => {
 	role = event.target.value;
 	if (role !== "executor") {
 		executorDraftStatuses = {};
+		executorDraftComments = {};
 	}
 	if (role !== "customer") {
 		customerDraftStatuses = {};
+		customerDraftComments = {};
 	}
 	renderRoleState();
 	renderCalendar();
@@ -401,6 +456,8 @@ socket.on("state", (nextState) => {
 	appState = nextState;
 	executorDraftStatuses = {};
 	customerDraftStatuses = {};
+	executorDraftComments = {};
+	customerDraftComments = {};
 	fillSettingsForm();
 
 	renderCalendar();
