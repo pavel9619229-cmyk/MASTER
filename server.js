@@ -584,9 +584,8 @@ io.on("connection", (socket) => {
 			});
 		}
 
-		// Update workdays and ensure slots for new days
-		const merged = [...new Set([...prevDays, ...safeDays])].sort((a, b) => a - b);
-		state.weekWorkDays[weekKey] = merged;
+		// Replace workdays entirely (not merge) and ensure slots for new days
+		state.weekWorkDays[weekKey] = safeDays;
 		ensureWeekSlots(weekKey);
 		emitState();
 	});
