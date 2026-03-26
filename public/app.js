@@ -476,6 +476,7 @@ function renderMonthView() {
 				isPast && !isToday ? "past-day" : "",
 				isToday ? "today" : "",
 				isWorkDay ? "work-day" : "",
+				!isWorkDay ? "non-work-day" : "",
 			].filter(Boolean).join(" ");
 
 			rowsHtml += `<td class="${classes}" data-day-key="${dk}"><span class="month-day-num">${day.getDate()}</span>${dotsHtml}</td>`;

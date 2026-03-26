@@ -622,6 +622,10 @@ h1 {
 	background: rgba(96, 104, 112, 0.1);
 }
 
+.month-day.non-work-day.past-day {
+	background: rgba(84, 91, 97, 0.24);
+}
+
 .month-day-dots {
 	display: flex;
 	flex-wrap: wrap;
