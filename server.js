@@ -196,6 +196,7 @@ function createSlot({ id, datePart, timePart, kind = "primary", linkedPrimaryId 
 		customerComment: "",
 		comment: "",
 		history: [],
+		touched: false,
 		updatedAt: new Date().toISOString(),
 	};
 }
@@ -436,6 +437,7 @@ io.on("connection", (socket) => {
 			resetSlot(slot);
 		}
 
+		slot.touched = true;
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -481,6 +483,7 @@ io.on("connection", (socket) => {
 			}
 		}
 
+		slot.touched = true;
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -543,11 +546,45 @@ io.on("connection", (socket) => {
 			socket.emit("error:message", "Некорректная неделя.");
 			return;
 		}
+
+		const weekStartDate = startOfWeek(weekDate);
+		const today = startOfDay(new Date());
+
+		// Check if any day in this week is in the past
+		for (let i = 0; i < 7; i += 1) {
+			const d = addDays(weekStartDate, i);
+			if (d < today) {
+				socket.emit("error:message", "Нельзя редактировать рабочие дни прошедшей недели.");
+				return;
+			}
+		}
+
 		const safeDays = Array.isArray(workDays)
 			? [...new Set(workDays.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
 			: [];
-		const weekKey = dateKey(startOfWeek(weekDate));
+		const weekKey = dateKey(weekStartDate);
 		const prevDays = Array.isArray(state.weekWorkDays[weekKey]) ? state.weekWorkDays[weekKey] : [];
+
+		// Days that are being removed
+		const removedDays = prevDays.filter((d) => !safeDays.includes(d));
+
+		// Delete untouched slots from removed days
+		if (removedDays.length > 0) {
+			const daysToDelete = new Set();
+			removedDays.forEach((dayNum) => {
+				const d = addDays(weekStartDate, dayNum);
+				daysToDelete.add(dateKey(d));
+			});
+
+			Object.keys(state.slots).forEach((slotId) => {
+				const slot = state.slots[slotId];
+				if (daysToDelete.has(slot.datePart) && !slot.touched) {
+					delete state.slots[slotId];
+				}
+			});
+		}
+
+		// Update workdays and ensure slots for new days
 		const merged = [...new Set([...prevDays, ...safeDays])].sort((a, b) => a - b);
 		state.weekWorkDays[weekKey] = merged;
 		ensureWeekSlots(weekKey);

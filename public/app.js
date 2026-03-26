@@ -253,9 +253,6 @@ function renderCalendar() {
 					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
 				const clickable = canClickSlot({ ...slot, status: draftStatus });
-				const slotKindBadgeHtml = role === "executor"
-					? `<span class="slot-kind-badge ${slot.kind === "extra" ? "extra" : "primary"}">${slot.kind === "extra" ? "доп." : "основной"}</span>`
-					: "";
 				const confirmBtnHtml = !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
@@ -279,7 +276,6 @@ function renderCalendar() {
 				return `
 					<div class="slot-cell">
 						<div class="slot-row">
-							${slotKindBadgeHtml}
 							<button
 								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
 								data-slot-id="${slot.id}"
@@ -371,8 +367,17 @@ function renderWeekControls() {
 	if (role === "executor" && settingsForm) {
 		const wk = dateKey(currentWeekStart);
 		const selected = Array.isArray(appState.weekWorkDays?.[wk]) ? appState.weekWorkDays[wk] : [];
+		const todayStart = startOfDay(currentNow());
+		
 		settingsForm.querySelectorAll('input[name="workDay"]').forEach((el) => {
 			el.checked = selected.includes(Number(el.value));
+			
+			// Disable checkboxes for past days
+			const dayOffset = Number(el.value);
+			const dayDate = addDays(currentWeekStart, dayOffset);
+			const isPastDay = startOfDay(dayDate) < todayStart;
+			el.disabled = isPastDay;
+			el.closest(".day-label").style.opacity = isPastDay ? "0.5" : "1";
 		});
 	}
 }
@@ -411,7 +416,7 @@ if (settingsForm) {
 			weekStart: dateKey(currentWeekStart),
 			workDays,
 		});
-		setHint("Рабочие дни добавлены для выбранной недели.");
+		setHint("Рабочие дни обновлены для выбранной недели.");
 	});
 }
 
