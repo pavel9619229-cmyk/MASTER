@@ -253,6 +253,16 @@ function renderCalendar() {
 			const slotsInCell = (grouped[key] || [])
 				.filter((slot) => !(role === "customer" && isPastSlot(slot)))
 				.sort((a, b) => a.id.localeCompare(b.id));
+
+			if (role === "customer" && dayDate) {
+				const weekKey = dateKey(currentWeekStart);
+				const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
+				const isWorkDay = weekWorkDays.includes(dayDate.getDay());
+				if (!isWorkDay && slotsInCell.length === 0) {
+					return '<td class="non-working-day"></td>';
+				}
+			}
+
 			if (slotsInCell.length === 0) return "<td></td>";
 
 			const slotsHtml = slotsInCell.map((slot) => {

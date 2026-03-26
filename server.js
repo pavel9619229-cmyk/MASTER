@@ -355,6 +355,7 @@ function buildStateForSocket(socket) {
 
 	return {
 		settings: state.settings,
+		weekWorkDays: state.weekWorkDays,
 		slots: customerSlots,
 		meta: {
 			mode: "customer",

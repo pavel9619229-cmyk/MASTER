@@ -167,6 +167,10 @@ h1 {
 	vertical-align: middle;
 }
 
+.calendar td.non-working-day {
+	background: rgba(122, 130, 137, 0.2);
+}
+
 .calendar th {
 	background: #f9fbfa;
 	font-size: 13px;
