@@ -274,6 +274,13 @@ h1 {
 	gap: 4px;
 }
 
+.slot-cell.past-slot {
+	background: rgba(96, 104, 112, 0.38);
+	border: 1px solid rgba(70, 77, 84, 0.42);
+	border-radius: 10px;
+	padding: 4px;
+}
+
 .slot-history {
 	list-style: none;
 	margin: 0;

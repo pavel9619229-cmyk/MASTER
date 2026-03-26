@@ -282,7 +282,7 @@ function renderCalendar() {
 					: "";
 
 				return `
-					<div class="slot-cell">
+					<div class="slot-cell ${past ? "past-slot" : ""}">
 						<div class="slot-row">
 							<button
 								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
