@@ -115,7 +115,7 @@ function clampWeekToRange() {
 	const minWeek = startOfWeek(rangeStart);
 	const maxWeek = startOfWeek(rangeEnd);
 	if (currentWeekStart < minWeek) currentWeekStart = minWeek;
-	if (currentWeekStart > maxWeek) currentWeekStart = maxWeek;
+			return `<td class="${hasPastSlot ? "past-slot-cell" : ""}">${slotsHtml}</td>`;
 }
 
 function normalizeStatus(status) {
