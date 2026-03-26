@@ -285,6 +285,52 @@ h1 {
 	padding: 4px;
 }
 
+.slot-cell.past-slot .slot {
+	border-color: rgba(31, 39, 44, 0.55);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.slot-cell.past-slot .slot.free {
+	background: #c7d0d4;
+}
+
+.slot-cell.past-slot .slot.requested {
+	background: #c89e43;
+}
+
+.slot-cell.past-slot .slot.confirmed {
+	background: #5f9f6d;
+}
+
+.slot-cell.past-slot .slot.split {
+	background: linear-gradient(135deg, #5f9f6d 0%, #5f9f6d 48%, #c7d0d4 52%, #c7d0d4 100%);
+}
+
+.slot-cell.past-slot .slot.rejected,
+.slot-cell.past-slot .slot.busy {
+	background: #73828b;
+}
+
+.slot-cell.past-slot .slot-label {
+	color: #132026;
+}
+
+.slot-cell.past-slot .slot-comment-input {
+	background: rgba(69, 77, 84, 0.85);
+	border-color: rgba(38, 45, 50, 0.9);
+	color: #f2f5f6;
+}
+
+.slot-cell.past-slot .slot-comment-input::placeholder {
+	color: rgba(242, 245, 246, 0.72);
+}
+
+.slot-cell.past-slot .slot-comment-send-btn {
+	background: rgba(52, 61, 67, 0.92);
+	border-color: rgba(26, 33, 37, 0.9);
+	color: #eef4f6;
+}
+
 .slot-history {
 	list-style: none;
 	margin: 0;
