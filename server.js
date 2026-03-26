@@ -245,6 +245,29 @@ function ensureWeekSlots(weekKey) {
 	}
 }
 
+function syncSlotsForWorkingHours() {
+	const today = startOfDay(new Date());
+	const startMinutes = Number(state.settings.startHour) * 60;
+	const endMinutes = Number(state.settings.endHour) * 60;
+
+	Object.keys(state.slots).forEach((slotId) => {
+		const slot = state.slots[slotId];
+		if (!slot) return;
+		const d = parseDateKey(slot.datePart);
+		if (!d || startOfDay(d) < today) return;
+		const [h, m] = String(slot.timePart || "00:00").split(":").map(Number);
+		const totalMinutes = (Number(h) || 0) * 60 + (Number(m) || 0);
+		const inHours = totalMinutes >= startMinutes && (totalMinutes + SLOT_MINUTES) <= endMinutes;
+		if (!inHours && !slot.touched) {
+			delete state.slots[slotId];
+		}
+	});
+
+	Object.keys(state.weekWorkDays).forEach((weekKey) => {
+		ensureWeekSlots(weekKey);
+	});
+}
+
 function initDefaultWeeks() {
 	const today = startOfDay(new Date());
 	const start = addDays(today, -MASTER_PAST_DAYS);
@@ -612,6 +635,24 @@ io.on("connection", (socket) => {
 
 		state.weekWorkDays[weekKey] = [...new Set([...preservedPastDays, ...editableNextDays])].sort((a, b) => a - b);
 		ensureWeekSlots(weekKey);
+		emitState();
+	});
+
+	socket.on("executor:updateWorkingHours", ({ startHour, endHour }) => {
+		if (!isMaster()) return;
+		const safeStart = Number(startHour);
+		const safeEnd = Number(endHour);
+		if (!Number.isInteger(safeStart) || !Number.isInteger(safeEnd)) {
+			socket.emit("error:message", "Часы должны быть целыми числами.");
+			return;
+		}
+		if (safeStart < 0 || safeStart > 23 || safeEnd < 1 || safeEnd > 24 || safeEnd <= safeStart) {
+			socket.emit("error:message", "Некорректный диапазон рабочих часов.");
+			return;
+		}
+		state.settings.startHour = safeStart;
+		state.settings.endHour = safeEnd;
+		syncSlotsForWorkingHours();
 		emitState();
 	});
 });

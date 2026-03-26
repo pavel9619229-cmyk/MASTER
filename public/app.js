@@ -14,6 +14,8 @@ const monthNavEl = document.getElementById("month-nav");
 const monthPrevBtn = document.getElementById("month-prev");
 const monthNextBtn = document.getElementById("month-next");
 const monthLabelEl = document.getElementById("month-label");
+const workStartHourInput = document.getElementById("work-start-hour");
+const workEndHourInput = document.getElementById("work-end-hour");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -277,9 +279,14 @@ function renderCalendar() {
 			const slotsInCell = (grouped[key] || [])
 				.filter((slot) => !(role === "customer" && isPastSlot(slot)))
 				.sort((a, b) => a.id.localeCompare(b.id));
+			const isRemovedWorkingCell = dayDate && isWorkDay && !isPastDay && slotsInCell.length === 0;
 
 			if (dayDate && !isWorkDay && slotsInCell.length === 0) {
 				return `<td class="non-working-day${isPastDay ? " non-working-day-past" : ""}"></td>`;
+			}
+
+			if (isRemovedWorkingCell) {
+				return '<td class="non-working-day"></td>';
 			}
 
 			if (slotsInCell.length === 0) return "<td></td>";
@@ -422,6 +429,9 @@ function renderWeekControls() {
 		const wk = dateKey(currentWeekStart);
 		const selected = Array.isArray(appState.weekWorkDays?.[wk]) ? appState.weekWorkDays[wk] : [];
 		const todayStart = startOfDay(currentNow());
+
+		if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
+		if (workEndHourInput) workEndHourInput.value = String(appState.settings?.endHour ?? 18);
 		
 		settingsForm.querySelectorAll('input[name="workDay"]').forEach((el) => {
 			el.checked = selected.includes(Number(el.value));
@@ -547,12 +557,18 @@ if (settingsForm) {
 	settingsForm.addEventListener("submit", (event) => {
 		event.preventDefault();
 		if (role !== "executor") return;
+		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
+		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
+		socket.emit("executor:updateWorkingHours", {
+			startHour,
+			endHour,
+		});
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
 		socket.emit("executor:updateWeekWorkDays", {
 			weekStart: dateKey(currentWeekStart),
 			workDays,
 		});
-		setHint("Рабочие дни сохранены для выбранной недели.");
+		setHint("Рабочие часы и рабочие дни сохранены.");
 	});
 }
 

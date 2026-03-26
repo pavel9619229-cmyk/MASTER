@@ -54,6 +54,19 @@
 					<h2>Рабочие дни выбранной недели</h2>
 					<form id="settings-form" class="settings-form">
 						<fieldset class="workdays-fieldset">
+							<legend>Рабочие часы</legend>
+							<div class="work-hours-group">
+								<label>
+									С
+									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
+								</label>
+								<label>
+									До
+									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
+								</label>
+							</div>
+						</fieldset>
+						<fieldset class="workdays-fieldset">
 							<legend>Рабочие дни</legend>
 							<div class="workdays-group">
 								<label class="day-label"><input type="checkbox" name="workDay" value="1" /><span>Пн</span></label>
