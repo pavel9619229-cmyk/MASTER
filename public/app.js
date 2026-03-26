@@ -224,6 +224,9 @@ function renderCalendar() {
 					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
 				const clickable = canClickSlot({ ...slot, status: draftStatus });
+				const slotKindBadgeHtml = role === "executor"
+					? `<span class="slot-kind-badge ${slot.kind === "extra" ? "extra" : "primary"}">${slot.kind === "extra" ? "доп." : "основной"}</span>`
+					: "";
 				const confirmBtnHtml = hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
@@ -247,6 +250,7 @@ function renderCalendar() {
 				return `
 					<div class="slot-cell">
 						<div class="slot-row">
+							${slotKindBadgeHtml}
 							<button
 								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
 								data-slot-id="${slot.id}"

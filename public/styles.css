@@ -292,6 +292,31 @@ h1 {
 	width: 100%;
 }
 
+.slot-kind-badge {
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 4px 6px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: rgba(255, 255, 255, 0.8);
+	color: var(--muted);
+	white-space: nowrap;
+	flex: 0 0 auto;
+}
+
+.slot-kind-badge.primary {
+	color: #006d77;
+	border-color: rgba(0, 109, 119, 0.35);
+}
+
+.slot-kind-badge.extra {
+	color: #7a4f00;
+	border-color: rgba(122, 79, 0, 0.35);
+	background: rgba(255, 243, 214, 0.8);
+}
+
 .slot-confirm-btn {
 	padding: 5px 10px;
 	border: 1.5px solid var(--accent);
