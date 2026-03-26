@@ -264,7 +264,13 @@ function renderCalendar() {
 	const rows = times.map((time) => {
 		const cells = dayKeys.map((dayKey) => {
 			const dayDate = parseDateKey(dayKey);
-			if (role === "customer" && dayDate && startOfDay(dayDate) < todayStart) {
+			const isPastDay = !!(dayDate && startOfDay(dayDate) < todayStart);
+			const weekKey = dateKey(currentWeekStart);
+			const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
+			const isWorkDay = !!(dayDate && weekWorkDays.includes(dayDate.getDay()));
+
+			if (role === "customer" && isPastDay) {
+				if (!isWorkDay) return '<td class="non-working-day non-working-day-past"></td>';
 				return "<td></td>";
 			}
 			const key = `${dayKey}T${time}`;
@@ -272,13 +278,8 @@ function renderCalendar() {
 				.filter((slot) => !(role === "customer" && isPastSlot(slot)))
 				.sort((a, b) => a.id.localeCompare(b.id));
 
-			if (role === "customer" && dayDate) {
-				const weekKey = dateKey(currentWeekStart);
-				const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
-				const isWorkDay = weekWorkDays.includes(dayDate.getDay());
-				if (!isWorkDay && slotsInCell.length === 0) {
-					return '<td class="non-working-day"></td>';
-				}
+			if (dayDate && !isWorkDay && slotsInCell.length === 0) {
+				return `<td class="non-working-day${isPastDay ? " non-working-day-past" : ""}"></td>`;
 			}
 
 			if (slotsInCell.length === 0) return "<td></td>";

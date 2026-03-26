@@ -171,6 +171,10 @@ h1 {
 	background: rgba(122, 130, 137, 0.2);
 }
 
+.calendar td.non-working-day.non-working-day-past {
+	background: rgba(84, 91, 97, 0.45);
+}
+
 .calendar th {
 	background: #f9fbfa;
 	font-size: 13px;
