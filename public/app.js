@@ -290,6 +290,10 @@ function renderCalendar() {
 					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
 				const clickable = canClickSlot({ ...slot, status: draftStatus });
+				const canHideUntouched = role === "executor" && !past && !slot.touched;
+				const hideBtnHtml = canHideUntouched
+					? `<button type="button" class="slot-hide-btn" data-delete-slot="${slot.id}" title="Сделать слот нерабочим">×</button>`
+					: "";
 				const confirmBtnHtml = !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
@@ -312,6 +316,7 @@ function renderCalendar() {
 
 				return `
 					<div class="slot-cell ${past ? "past-slot" : ""}">
+						${hideBtnHtml}
 						<div class="slot-row">
 							<button
 								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
@@ -341,6 +346,18 @@ function renderCalendar() {
 		el.addEventListener("click", () => {
 			const slot = appState.slots[el.getAttribute("data-slot-id")];
 			if (slot) handleSlotClick(slot);
+		});
+	});
+
+	calendarWrapper.querySelectorAll("[data-delete-slot]").forEach((btn) => {
+		btn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (role !== "executor") return;
+			const slotId = btn.getAttribute("data-delete-slot");
+			if (!slotId || !appState.slots[slotId]) return;
+			socket.emit("executor:hideUntouchedSlot", { slotId });
+			setHint("Слот скрыт. Чтобы вернуть его, выключите и снова включите рабочий день.");
 		});
 	});
 

@@ -205,6 +205,7 @@ function createSlot({ id, datePart, timePart, kind = "primary", linkedPrimaryId 
 		comment: "",
 		history: [],
 		touched: false,
+		hiddenByMaster: false,
 		updatedAt: new Date().toISOString(),
 	};
 }
@@ -303,6 +304,7 @@ function buildStateForSocket(socket) {
 	if (isMaster) {
 		const masterSlots = {};
 		Object.values(state.slots).forEach((slot) => {
+			if (slot.hiddenByMaster) return;
 			if (!inRange(slot.datePart, masterRangeStart, masterRangeEnd)) return;
 			masterSlots[slot.id] = slot;
 		});
@@ -324,6 +326,7 @@ function buildStateForSocket(socket) {
 	const currentCustomerId = getOrCreateCustomerId(socket.request);
 	const grouped = {};
 	Object.values(state.slots).forEach((slot) => {
+		if (slot.hiddenByMaster) return;
 		if (!inRange(slot.datePart, customerRangeStart, customerRangeEnd)) return;
 		if (isPastSlot(slot, now)) return;
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
@@ -511,6 +514,7 @@ io.on("connection", (socket) => {
 		const slot = state.slots[slotId];
 		if (!slot) return;
 		slot.comment = String(comment || "").trim().slice(0, 300);
+		slot.touched = true;
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -534,6 +538,7 @@ io.on("connection", (socket) => {
 			return;
 		}
 		slot.customerComment = String(comment || "").trim().slice(0, 300);
+		slot.touched = true;
 		slot.history = [
 			...(slot.history || []),
 			{
@@ -544,6 +549,23 @@ io.on("connection", (socket) => {
 				comment: slot.customerComment,
 			},
 		];
+		slot.updatedAt = new Date().toISOString();
+		emitState();
+	});
+
+	socket.on("executor:hideUntouchedSlot", ({ slotId }) => {
+		if (!isMaster()) return;
+		const slot = state.slots[slotId];
+		if (!slot) return;
+		if (slot.touched) {
+			socket.emit("error:message", "Можно скрывать только не редактированные слоты.");
+			return;
+		}
+		if (isPastSlot(slot)) {
+			socket.emit("error:message", "Прошедший слот скрывать нельзя.");
+			return;
+		}
+		slot.hiddenByMaster = true;
 		slot.updatedAt = new Date().toISOString();
 		emitState();
 	});
