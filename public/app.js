@@ -64,6 +64,23 @@ function weekLabelText(weekStart) {
 	return `${pad(weekStart.getDate())}.${pad(weekStart.getMonth() + 1)} - ${pad(end.getDate())}.${pad(end.getMonth() + 1)}`;
 }
 
+function currentNow() {
+	return appState.meta?.nowIso ? new Date(appState.meta.nowIso) : new Date();
+}
+
+function slotDateTime(slot) {
+	const day = parseDateKey(slot.datePart);
+	if (!day) return null;
+	const [h, m] = String(slot.timePart || "00:00").split(":").map(Number);
+	return new Date(day.getFullYear(), day.getMonth(), day.getDate(), Number(h) || 0, Number(m) || 0, 0, 0);
+}
+
+function isPastSlot(slot) {
+	const dt = slotDateTime(slot);
+	if (!dt) return false;
+	return dt.getTime() < currentNow().getTime();
+}
+
 function clampWeekToRange() {
 	const rangeStart = parseDateKey(appState.meta?.rangeStart) || startOfWeek(new Date());
 	const rangeEnd = parseDateKey(appState.meta?.rangeEnd) || addDays(rangeStart, 28);
@@ -88,6 +105,7 @@ function getStatusLabel(status) {
 
 function canClickSlot(slot) {
 	const normalized = normalizeStatus(slot.status);
+	if (isPastSlot(slot)) return false;
 	if (role === "customer") {
 		return normalized === "free" || normalized === "requested";
 	}
@@ -204,22 +222,33 @@ function renderCalendar() {
 		grouped[slot.baseKey].push(slot);
 	});
 
+	const todayStart = startOfDay(currentNow());
 	const thead = `
 		<thead>
 			<tr>
 				<th>Время</th>
-				${days.map((d) => `<th>${toDisplayDate(d)}</th>`).join("")}
+				${days.map((d) => {
+					if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
+					return `<th>${toDisplayDate(d)}</th>`;
+				}).join("")}
 			</tr>
 		</thead>
 	`;
 
 	const rows = times.map((time) => {
 		const cells = dayKeys.map((dayKey) => {
+			const dayDate = parseDateKey(dayKey);
+			if (role === "customer" && dayDate && startOfDay(dayDate) < todayStart) {
+				return "<td></td>";
+			}
 			const key = `${dayKey}T${time}`;
-			const slotsInCell = (grouped[key] || []).sort((a, b) => a.id.localeCompare(b.id));
+			const slotsInCell = (grouped[key] || [])
+				.filter((slot) => !(role === "customer" && isPastSlot(slot)))
+				.sort((a, b) => a.id.localeCompare(b.id));
 			if (slotsInCell.length === 0) return "<td></td>";
 
 			const slotsHtml = slotsInCell.map((slot) => {
+				const past = isPastSlot(slot);
 				const draftStatus = role === "executor"
 					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
@@ -227,7 +256,7 @@ function renderCalendar() {
 				const slotKindBadgeHtml = role === "executor"
 					? `<span class="slot-kind-badge ${slot.kind === "extra" ? "extra" : "primary"}">${slot.kind === "extra" ? "доп." : "основной"}</span>`
 					: "";
-				const confirmBtnHtml = hasStatusDraftChange(slot)
+				const confirmBtnHtml = !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
 

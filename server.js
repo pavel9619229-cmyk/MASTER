@@ -93,6 +93,19 @@ function timePartFromMinutes(totalMinutes) {
 	return `${pad(hour)}:${pad(minute)}`;
 }
 
+function slotDateTime(slot) {
+	const day = parseDateKey(slot.datePart);
+	if (!day) return null;
+	const [h, m] = String(slot.timePart || "00:00").split(":").map(Number);
+	return new Date(day.getFullYear(), day.getMonth(), day.getDate(), Number(h) || 0, Number(m) || 0, 0, 0);
+}
+
+function isPastSlot(slot, refDate = new Date()) {
+	const dt = slotDateTime(slot);
+	if (!dt) return false;
+	return dt.getTime() < refDate.getTime();
+}
+
 function baseKey(datePart, timePart) {
 	return `${datePart}T${timePart}`;
 }
@@ -272,6 +285,7 @@ function buildStateForSocket(socket) {
 	const sessionObj = socket.request.session;
 	const isMaster = !!(sessionObj && sessionObj.isMaster);
 	const today = startOfDay(new Date());
+	const now = new Date();
 	const masterRangeStart = addDays(today, -MASTER_PAST_DAYS);
 	const masterRangeEnd = addDays(today, MASTER_FUTURE_DAYS);
 	const customerRangeStart = today;
@@ -292,6 +306,7 @@ function buildStateForSocket(socket) {
 				rangeStart: dateKey(masterRangeStart),
 				rangeEnd: dateKey(masterRangeEnd),
 				today: dateKey(today),
+				nowIso: now.toISOString(),
 				slotMinutes: SLOT_MINUTES,
 			},
 		};
@@ -301,6 +316,7 @@ function buildStateForSocket(socket) {
 	const grouped = {};
 	Object.values(state.slots).forEach((slot) => {
 		if (!inRange(slot.datePart, customerRangeStart, customerRangeEnd)) return;
+		if (isPastSlot(slot, now)) return;
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
@@ -336,6 +352,7 @@ function buildStateForSocket(socket) {
 			rangeStart: dateKey(customerRangeStart),
 			rangeEnd: dateKey(customerRangeEnd),
 			today: dateKey(today),
+			nowIso: now.toISOString(),
 			slotMinutes: SLOT_MINUTES,
 		},
 	};
@@ -391,6 +408,10 @@ io.on("connection", (socket) => {
 	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
 		const slot = state.slots[slotId];
 		if (!slot) return;
+		if (isPastSlot(slot)) {
+			socket.emit("error:message", "Нельзя менять прошедший слот.");
+			return;
+		}
 
 		const customerId = getOrCreateCustomerId(socket.request);
 		const normalizedSelected = normalizeStatus(selectedStatus);
@@ -432,6 +453,10 @@ io.on("connection", (socket) => {
 		if (!isMaster()) return;
 		const slot = state.slots[slotId];
 		if (!slot) return;
+		if (isPastSlot(slot)) {
+			socket.emit("error:message", "Прошедшие слоты нельзя менять по статусу.");
+			return;
+		}
 
 		const allowedStatuses = ["free", "requested", "confirmed", "rejected", "split"];
 		const normalizedSelected = normalizeStatus(selectedStatus);
