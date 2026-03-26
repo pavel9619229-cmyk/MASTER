@@ -416,7 +416,7 @@ if (settingsForm) {
 			weekStart: dateKey(currentWeekStart),
 			workDays,
 		});
-		setHint("Рабочие дни обновлены для выбранной недели.");
+		setHint("Рабочие дни сохранены для выбранной недели.");
 	});
 }
 
