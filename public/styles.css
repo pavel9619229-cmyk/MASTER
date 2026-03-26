@@ -179,7 +179,7 @@ h1 {
 .calendar td.past-slot-cell {
 	background: var(--past-non-work);
 	padding: 0;
-	border-color: var(--past-non-work);
+	border-color: var(--past-non-work) !important;
 }
 
 .calendar th {
@@ -356,7 +356,7 @@ h1 {
 
 .slot-cell.past-slot .slot-comment-input {
 	background: var(--past-non-work);
-	border-color: var(--past-non-work);
+	border: 1px solid var(--past-non-work);
 	color: #f2f5f6;
 }
 
@@ -366,8 +366,12 @@ h1 {
 
 .slot-cell.past-slot .slot-comment-send-btn {
 	background: var(--past-non-work);
-	border-color: var(--past-non-work);
+	border: 1.5px solid var(--past-non-work);
 	color: #eef4f6;
+}
+
+.slot-cell.past-slot .slot-dot {
+	border-color: var(--past-non-work);
 }
 
 .work-hours-group {
