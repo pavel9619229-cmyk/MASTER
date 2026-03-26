@@ -341,7 +341,8 @@ function renderCalendar() {
 				`;
 			}).join("");
 
-			return `<td>${slotsHtml}</td>`;
+			const hasPastSlot = slotsInCell.some((s) => isPastSlot(s));
+			return `<td class="${hasPastSlot ? "past-slot-cell" : ""}">${slotsHtml}</td>`;
 		}).join("");
 
 		return `<tr><td class="time-label">${time}</td>${cells}</tr>`;

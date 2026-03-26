@@ -178,6 +178,8 @@ h1 {
 
 .calendar td.past-slot-cell {
 	background: var(--past-non-work);
+	padding: 0;
+	border-color: rgba(70, 77, 84, 0.42);
 }
 
 .calendar th {
