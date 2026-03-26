@@ -55,6 +55,14 @@ function startOfWeek(date) {
 	return d;
 }
 
+function weekdayToWeekOffset(dayNum) {
+	return (Number(dayNum) + 6) % 7;
+}
+
+function dateForWeekDay(weekStartDate, dayNum) {
+	return addDays(weekStartDate, weekdayToWeekOffset(dayNum));
+}
+
 function toDisplayDate(date) {
 	return `${WEEKDAY_LABELS[date.getDay()]}, ${pad(date.getDate())}.${pad(date.getMonth() + 1)}`;
 }
@@ -373,8 +381,7 @@ function renderWeekControls() {
 			el.checked = selected.includes(Number(el.value));
 			
 			// Disable checkboxes for past days
-			const dayOffset = Number(el.value);
-			const dayDate = addDays(currentWeekStart, dayOffset);
+			const dayDate = dateForWeekDay(currentWeekStart, Number(el.value));
 			const isPastDay = startOfDay(dayDate) < todayStart;
 			el.disabled = isPastDay;
 			el.closest(".day-label").style.opacity = isPastDay ? "0.5" : "1";

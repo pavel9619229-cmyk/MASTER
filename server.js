@@ -83,6 +83,14 @@ function startOfWeek(date) {
 	return d;
 }
 
+function weekdayToWeekOffset(dayNum) {
+	return (Number(dayNum) + 6) % 7;
+}
+
+function dateForWeekDay(weekStartDate, dayNum) {
+	return addDays(weekStartDate, weekdayToWeekOffset(dayNum));
+}
+
 function weekKeyFromDate(date) {
 	return dateKey(startOfWeek(date));
 }
@@ -550,29 +558,24 @@ io.on("connection", (socket) => {
 		const weekStartDate = startOfWeek(weekDate);
 		const today = startOfDay(new Date());
 
-		// Check if any day in this week is in the past
-		for (let i = 0; i < 7; i += 1) {
-			const d = addDays(weekStartDate, i);
-			if (d < today) {
-				socket.emit("error:message", "Нельзя редактировать рабочие дни прошедшей недели.");
-				return;
-			}
-		}
-
 		const safeDays = Array.isArray(workDays)
 			? [...new Set(workDays.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
 			: [];
 		const weekKey = dateKey(weekStartDate);
 		const prevDays = Array.isArray(state.weekWorkDays[weekKey]) ? state.weekWorkDays[weekKey] : [];
+		const isPastWorkDay = (dayNum) => startOfDay(dateForWeekDay(weekStartDate, dayNum)) < today;
+		const preservedPastDays = prevDays.filter((dayNum) => isPastWorkDay(dayNum));
+		const editablePrevDays = prevDays.filter((dayNum) => !isPastWorkDay(dayNum));
+		const editableNextDays = safeDays.filter((dayNum) => !isPastWorkDay(dayNum));
 
 		// Days that are being removed
-		const removedDays = prevDays.filter((d) => !safeDays.includes(d));
+		const removedDays = editablePrevDays.filter((dayNum) => !editableNextDays.includes(dayNum));
 
 		// Delete untouched slots from removed days
 		if (removedDays.length > 0) {
 			const daysToDelete = new Set();
 			removedDays.forEach((dayNum) => {
-				const d = addDays(weekStartDate, dayNum);
+				const d = dateForWeekDay(weekStartDate, dayNum);
 				daysToDelete.add(dateKey(d));
 			});
 
@@ -584,8 +587,7 @@ io.on("connection", (socket) => {
 			});
 		}
 
-		// Replace workdays entirely (not merge) and ensure slots for new days
-		state.weekWorkDays[weekKey] = safeDays;
+		state.weekWorkDays[weekKey] = [...new Set([...preservedPastDays, ...editableNextDays])].sort((a, b) => a - b);
 		ensureWeekSlots(weekKey);
 		emitState();
 	});
