@@ -8,6 +8,12 @@ const settingsForm = document.getElementById("settings-form");
 const weekPrevBtn = document.getElementById("week-prev");
 const weekNextBtn = document.getElementById("week-next");
 const weekLabel = document.getElementById("week-label");
+const viewWeekBtn = document.getElementById("view-week");
+const viewMonthBtn = document.getElementById("view-month");
+const monthNavEl = document.getElementById("month-nav");
+const monthPrevBtn = document.getElementById("month-prev");
+const monthNextBtn = document.getElementById("month-next");
+const monthLabelEl = document.getElementById("month-label");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -15,6 +21,8 @@ const PHONE_PREFIX = "+7";
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
 let currentWeekStart = startOfWeek(new Date());
+let currentView = "week";
+let currentMonthStart = startOfMonth(new Date());
 let executorDraftStatuses = {};
 let customerDraftStatuses = {};
 let executorDraftComments = {};
@@ -53,6 +61,16 @@ function startOfWeek(date) {
 	const day = (d.getDay() + 6) % 7;
 	d.setDate(d.getDate() - day);
 	return d;
+}
+
+function startOfMonth(date) {
+	return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+const MONTH_NAMES = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+function monthLabelText(date) {
+	return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 function weekdayToWeekOffset(dayNum) {
@@ -399,6 +417,88 @@ function renderWeekControls() {
 	}
 }
 
+function updateViewUI() {
+	const isWeek = currentView === "week";
+	if (viewWeekBtn) viewWeekBtn.classList.toggle("active", isWeek);
+	if (viewMonthBtn) viewMonthBtn.classList.toggle("active", !isWeek);
+	const weekNavEl = document.getElementById("week-nav");
+	if (weekNavEl) weekNavEl.classList.toggle("hidden", !isWeek);
+	if (monthNavEl) monthNavEl.classList.toggle("hidden", isWeek);
+	if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
+}
+
+function renderView() {
+	if (currentView === "week") {
+		renderCalendar();
+	} else {
+		renderMonthView();
+	}
+}
+
+function renderMonthView() {
+	const monthStart = currentMonthStart;
+	const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+	const gridStart = startOfWeek(monthStart);
+	const gridEnd = addDays(startOfWeek(monthEnd), 6);
+	const todayStart = startOfDay(currentNow());
+
+	const slotsByDay = {};
+	Object.values(appState.slots || {}).forEach((slot) => {
+		if (!slotsByDay[slot.datePart]) slotsByDay[slot.datePart] = [];
+		slotsByDay[slot.datePart].push(slot);
+	});
+
+	const thead = `<thead><tr>${["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((d) => `<th>${d}</th>`).join("")}</tr></thead>`;
+
+	let rowsHtml = "";
+	let day = new Date(gridStart);
+	while (day <= gridEnd) {
+		rowsHtml += "<tr>";
+		for (let i = 0; i < 7; i++) {
+			const dk = dateKey(day);
+			const isCurrentMonth = day.getMonth() === monthStart.getMonth();
+			const isPast = startOfDay(day) < todayStart;
+			const isToday = startOfDay(day).getTime() === todayStart.getTime();
+
+			const wk = dateKey(startOfWeek(day));
+			const weekWorkDays = Array.isArray(appState.weekWorkDays?.[wk]) ? appState.weekWorkDays[wk] : [];
+			const isWorkDay = weekWorkDays.includes(day.getDay());
+
+			const daySlots = (slotsByDay[dk] || []).filter((s) => !(role === "customer" && isPastSlot(s)));
+			const uniqueStatuses = [...new Set(daySlots.map((s) => normalizeStatus(s.status)))].slice(0, 4);
+			const dotsHtml = uniqueStatuses.length > 0
+				? `<div class="month-day-dots">${uniqueStatuses.map((st) => `<span class="month-dot ${st}"></span>`).join("")}</div>`
+				: "";
+
+			const classes = [
+				"month-day",
+				isCurrentMonth ? "" : "other-month",
+				isPast && !isToday ? "past-day" : "",
+				isToday ? "today" : "",
+				isWorkDay ? "work-day" : "",
+			].filter(Boolean).join(" ");
+
+			rowsHtml += `<td class="${classes}" data-day-key="${dk}"><span class="month-day-num">${day.getDate()}</span>${dotsHtml}</td>`;
+			day = addDays(day, 1);
+		}
+		rowsHtml += "</tr>";
+	}
+
+	calendarWrapper.innerHTML = `<table class="month-calendar">${thead}<tbody>${rowsHtml}</tbody></table>`;
+
+	calendarWrapper.querySelectorAll(".month-day").forEach((td) => {
+		td.addEventListener("click", () => {
+			const clickedDay = parseDateKey(td.getAttribute("data-day-key"));
+			if (!clickedDay) return;
+			currentWeekStart = startOfWeek(clickedDay);
+			currentView = "week";
+			updateViewUI();
+			renderWeekControls();
+			renderCalendar();
+		});
+	});
+}
+
 if (weekPrevBtn) {
 	weekPrevBtn.addEventListener("click", () => {
 		currentWeekStart = addDays(currentWeekStart, -7);
@@ -443,13 +543,48 @@ socket.on("state", (nextState) => {
 	customerDraftStatuses = {};
 	executorDraftComments = {};
 	customerDraftComments = {};
+	updateViewUI();
 	renderWeekControls();
-	renderCalendar();
+	renderView();
 });
 
 socket.on("error:message", (message) => {
 	setHint(message);
 });
+
+if (viewWeekBtn) {
+	viewWeekBtn.addEventListener("click", () => {
+		currentView = "week";
+		updateViewUI();
+		renderWeekControls();
+		renderCalendar();
+	});
+}
+
+if (viewMonthBtn) {
+	viewMonthBtn.addEventListener("click", () => {
+		currentView = "month";
+		currentMonthStart = startOfMonth(currentWeekStart);
+		updateViewUI();
+		renderMonthView();
+	});
+}
+
+if (monthPrevBtn) {
+	monthPrevBtn.addEventListener("click", () => {
+		currentMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - 1, 1);
+		if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
+		renderMonthView();
+	});
+}
+
+if (monthNextBtn) {
+	monthNextBtn.addEventListener("click", () => {
+		currentMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1);
+		if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
+		renderMonthView();
+	});
+}
 
 if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 	customerPhoneInput.value = PHONE_PREFIX;
