@@ -235,36 +235,6 @@ h1 {
 	background: var(--rejected);
 }
 
-.slot-dot {
-	display: none;
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-	border: 1px solid rgba(0, 0, 0, 0.18);
-	flex: 0 0 auto;
-}
-
-.slot-dot.free {
-	background: var(--free);
-}
-
-.slot-dot.requested {
-	background: var(--requested);
-}
-
-.slot-dot.confirmed {
-	background: var(--confirmed);
-}
-
-.slot-dot.split {
-	background: linear-gradient(135deg, var(--confirmed) 0%, var(--confirmed) 48%, #ffffff 52%, #ffffff 100%);
-}
-
-.slot-dot.rejected,
-.slot-dot.busy {
-	background: var(--rejected);
-}
-
 .slot-label {
 	font-size: 12px;
 	font-weight: 700;
@@ -369,10 +339,6 @@ h1 {
 	background: transparent;
 	border: 1.5px solid var(--past-non-work);
 	color: #eef4f6;
-}
-
-.slot-cell.past-slot .slot-dot {
-	border-color: var(--past-non-work);
 }
 
 .work-hours-group {
