@@ -8,6 +8,7 @@ const settingsForm = document.getElementById("settings-form");
 const weekPrevBtn = document.getElementById("week-prev");
 const weekNextBtn = document.getElementById("week-next");
 const weekLabel = document.getElementById("week-label");
+const viewDayBtn = document.getElementById("view-day");
 const viewWeekBtn = document.getElementById("view-week");
 const viewMonthBtn = document.getElementById("view-month");
 const monthNavEl = document.getElementById("month-nav");
@@ -23,6 +24,7 @@ const PHONE_PREFIX = "+7";
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
 let currentWeekStart = startOfWeek(new Date());
+let currentDay = startOfDay(new Date());
 let currentView = "week";
 let currentMonthStart = startOfMonth(new Date());
 let executorDraftStatuses = {};
@@ -92,6 +94,10 @@ function weekLabelText(weekStart) {
 	return `${pad(weekStart.getDate())}.${pad(weekStart.getMonth() + 1)} - ${pad(end.getDate())}.${pad(end.getMonth() + 1)}`;
 }
 
+function dayLabelText(day) {
+	return `${toDisplayDate(day)}.${day.getFullYear()}`;
+}
+
 function currentNow() {
 	return appState.meta?.nowIso ? new Date(appState.meta.nowIso) : new Date();
 }
@@ -116,6 +122,16 @@ function clampWeekToRange() {
 	const maxWeek = startOfWeek(rangeEnd);
 	if (currentWeekStart < minWeek) currentWeekStart = minWeek;
 	if (currentWeekStart > maxWeek) currentWeekStart = maxWeek;
+}
+
+function clampDayToRange() {
+	const rangeStart = parseDateKey(appState.meta?.rangeStart) || startOfDay(new Date());
+	const rangeEnd = parseDateKey(appState.meta?.rangeEnd) || addDays(rangeStart, 28);
+	const minDay = startOfDay(rangeStart);
+	const maxDay = startOfDay(rangeEnd);
+	if (currentDay < minDay) currentDay = minDay;
+	if (currentDay > maxDay) currentDay = maxDay;
+	currentWeekStart = startOfWeek(currentDay);
 }
 
 function normalizeStatus(status) {
@@ -234,14 +250,18 @@ function hasCommentDraftChange(slot, commentBy) {
 }
 
 function renderCalendar() {
-	const visibleSlots = getVisibleSlotsForWeek();
+	const days = currentView === "day"
+		? [startOfDay(currentDay)]
+		: Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
+	const dayKeys = days.map(dateKey);
+	const dayStartKey = dayKeys[0];
+	const dayEndKey = dayKeys[dayKeys.length - 1];
+	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => slot.datePart >= dayStartKey && slot.datePart <= dayEndKey);
 	if (visibleSlots.length === 0) {
-		calendarWrapper.innerHTML = "<p>Нет слотов на выбранную неделю.</p>";
+		calendarWrapper.innerHTML = "<p>Нет слотов на выбранный период.</p>";
 		return;
 	}
 
-	const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
-	const dayKeys = days.map(dateKey);
 	const times = getTimesFromSettings();
 
 	const grouped = {};
@@ -417,13 +437,36 @@ function renderCalendar() {
 
 function renderWeekControls() {
 	clampWeekToRange();
-	if (weekLabel) weekLabel.textContent = weekLabelText(currentWeekStart);
+	clampDayToRange();
 
-	const rangeStart = startOfWeek(parseDateKey(appState.meta?.rangeStart) || currentWeekStart);
-	const rangeEnd = startOfWeek(parseDateKey(appState.meta?.rangeEnd) || currentWeekStart);
+	const rangeStartRaw = parseDateKey(appState.meta?.rangeStart) || currentWeekStart;
+	const rangeEndRaw = parseDateKey(appState.meta?.rangeEnd) || currentWeekStart;
+	const rangeStartWeek = startOfWeek(rangeStartRaw);
+	const rangeEndWeek = startOfWeek(rangeEndRaw);
+	const rangeStartDay = startOfDay(rangeStartRaw);
+	const rangeEndDay = startOfDay(rangeEndRaw);
 
-	if (weekPrevBtn) weekPrevBtn.disabled = currentWeekStart <= rangeStart;
-	if (weekNextBtn) weekNextBtn.disabled = currentWeekStart >= rangeEnd;
+	if (currentView === "day") {
+		if (weekLabel) weekLabel.textContent = dayLabelText(currentDay);
+		if (weekPrevBtn) {
+			weekPrevBtn.textContent = "← День";
+			weekPrevBtn.disabled = currentDay <= rangeStartDay;
+		}
+		if (weekNextBtn) {
+			weekNextBtn.textContent = "День →";
+			weekNextBtn.disabled = currentDay >= rangeEndDay;
+		}
+	} else {
+		if (weekLabel) weekLabel.textContent = weekLabelText(currentWeekStart);
+		if (weekPrevBtn) {
+			weekPrevBtn.textContent = "← Неделя";
+			weekPrevBtn.disabled = currentWeekStart <= rangeStartWeek;
+		}
+		if (weekNextBtn) {
+			weekNextBtn.textContent = "Неделя →";
+			weekNextBtn.disabled = currentWeekStart >= rangeEndWeek;
+		}
+	}
 
 	if (role === "executor" && settingsForm) {
 		const wk = dateKey(currentWeekStart);
@@ -446,20 +489,23 @@ function renderWeekControls() {
 }
 
 function updateViewUI() {
+	const isDay = currentView === "day";
 	const isWeek = currentView === "week";
+	const isMonth = currentView === "month";
+	if (viewDayBtn) viewDayBtn.classList.toggle("active", isDay);
 	if (viewWeekBtn) viewWeekBtn.classList.toggle("active", isWeek);
-	if (viewMonthBtn) viewMonthBtn.classList.toggle("active", !isWeek);
+	if (viewMonthBtn) viewMonthBtn.classList.toggle("active", isMonth);
 	const weekNavEl = document.getElementById("week-nav");
-	if (weekNavEl) weekNavEl.classList.toggle("hidden", !isWeek);
-	if (monthNavEl) monthNavEl.classList.toggle("hidden", isWeek);
+	if (weekNavEl) weekNavEl.classList.toggle("hidden", isMonth);
+	if (monthNavEl) monthNavEl.classList.toggle("hidden", !isMonth);
 	if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
 }
 
 function renderView() {
-	if (currentView === "week") {
-		renderCalendar();
-	} else {
+	if (currentView === "month") {
 		renderMonthView();
+	} else {
+		renderCalendar();
 	}
 }
 
@@ -519,6 +565,7 @@ function renderMonthView() {
 		td.addEventListener("click", () => {
 			const clickedDay = parseDateKey(td.getAttribute("data-day-key"));
 			if (!clickedDay) return;
+			currentDay = startOfDay(clickedDay);
 			currentWeekStart = startOfWeek(clickedDay);
 			currentView = "week";
 			updateViewUI();
@@ -530,7 +577,13 @@ function renderMonthView() {
 
 if (weekPrevBtn) {
 	weekPrevBtn.addEventListener("click", () => {
-		currentWeekStart = addDays(currentWeekStart, -7);
+		if (currentView === "day") {
+			currentDay = addDays(currentDay, -1);
+			currentWeekStart = startOfWeek(currentDay);
+		} else {
+			currentWeekStart = addDays(currentWeekStart, -7);
+			currentDay = startOfDay(currentWeekStart);
+		}
 		renderWeekControls();
 		renderCalendar();
 	});
@@ -538,7 +591,13 @@ if (weekPrevBtn) {
 
 if (weekNextBtn) {
 	weekNextBtn.addEventListener("click", () => {
-		currentWeekStart = addDays(currentWeekStart, 7);
+		if (currentView === "day") {
+			currentDay = addDays(currentDay, 1);
+			currentWeekStart = startOfWeek(currentDay);
+		} else {
+			currentWeekStart = addDays(currentWeekStart, 7);
+			currentDay = startOfDay(currentWeekStart);
+		}
 		renderWeekControls();
 		renderCalendar();
 	});
@@ -587,9 +646,21 @@ socket.on("error:message", (message) => {
 	setHint(message);
 });
 
+if (viewDayBtn) {
+	viewDayBtn.addEventListener("click", () => {
+		currentView = "day";
+		currentDay = startOfDay(currentDay);
+		currentWeekStart = startOfWeek(currentDay);
+		updateViewUI();
+		renderWeekControls();
+		renderCalendar();
+	});
+}
+
 if (viewWeekBtn) {
 	viewWeekBtn.addEventListener("click", () => {
 		currentView = "week";
+		currentWeekStart = startOfWeek(currentDay);
 		updateViewUI();
 		renderWeekControls();
 		renderCalendar();
