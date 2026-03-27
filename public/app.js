@@ -330,7 +330,6 @@ function renderCalendar() {
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
-								<span class="slot-dot ${draftStatus}"></span>
 								<span class="slot-label">${getStatusLabel(draftStatus)}</span>
 							</button>
 							${confirmBtnHtml}
