@@ -494,6 +494,29 @@ h1 {
 	font-size: 11px;
 }
 
+.slot-comment-input::placeholder {
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-comment-input::-webkit-input-placeholder {
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-comment-input::-moz-placeholder {
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-comment-input:-ms-input-placeholder {
+	color: #000000 !important;
+}
+
+.slot-comment-input::-ms-input-placeholder {
+	color: #000000 !important;
+}
+
 .slot-comment-send-btn {
 	padding: 4px 10px;
 }
