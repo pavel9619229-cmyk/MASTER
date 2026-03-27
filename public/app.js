@@ -250,9 +250,17 @@ function hasCommentDraftChange(slot, commentBy) {
 }
 
 function renderCalendar() {
-	const days = currentView === "day"
+	const todayStart = startOfDay(currentNow());
+	let days = currentView === "day"
 		? [startOfDay(currentDay)]
 		: Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
+	if (currentView !== "day" && role === "customer") {
+		days = days.filter((d) => startOfDay(d) >= todayStart);
+	}
+	if (days.length === 0) {
+		calendarWrapper.innerHTML = "<p>Нет доступных дней на этой неделе.</p>";
+		return;
+	}
 	const dayKeys = days.map(dateKey);
 	const dayStartKey = dayKeys[0];
 	const dayEndKey = dayKeys[dayKeys.length - 1];
@@ -269,8 +277,6 @@ function renderCalendar() {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
-
-	const todayStart = startOfDay(currentNow());
 	const thead = `
 		<thead>
 			<tr>
@@ -450,7 +456,8 @@ function renderWeekControls() {
 		if (weekLabel) weekLabel.textContent = dayLabelText(currentDay);
 		if (weekPrevBtn) {
 			weekPrevBtn.textContent = "← День";
-			weekPrevBtn.disabled = currentDay <= rangeStartDay;
+			const minDayForPrev = role === "customer" ? startOfDay(currentNow()) : rangeStartDay;
+			weekPrevBtn.disabled = currentDay <= rangeStartDay || currentDay <= minDayForPrev;
 		}
 		if (weekNextBtn) {
 			weekNextBtn.textContent = "День →";
@@ -650,6 +657,10 @@ if (viewDayBtn) {
 	viewDayBtn.addEventListener("click", () => {
 		currentView = "day";
 		currentDay = startOfDay(currentDay);
+		if (role === "customer") {
+			const todaySnap = startOfDay(currentNow());
+			if (currentDay < todaySnap) currentDay = todaySnap;
+		}
 		currentWeekStart = startOfWeek(currentDay);
 		updateViewUI();
 		renderWeekControls();
