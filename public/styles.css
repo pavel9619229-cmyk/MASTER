@@ -362,7 +362,7 @@ h1 {
 }
 
 .slot-cell.past-slot .slot-comment-input::placeholder {
-	color: rgba(242, 245, 246, 0.72);
+	color: #000000;
 }
 
 .slot-cell.past-slot .slot-comment-send-btn {
