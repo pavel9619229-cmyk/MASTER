@@ -358,7 +358,8 @@ h1 {
 .slot-cell.past-slot .slot-comment-input {
 	background: transparent;
 	border: 1px solid var(--past-non-work);
-	color: #f2f5f6;
+	color: #000000 !important;
+	-webkit-text-fill-color: #000000 !important;
 }
 
 .slot-cell.past-slot .slot-comment-input::placeholder {
