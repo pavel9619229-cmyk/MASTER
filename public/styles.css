@@ -362,7 +362,26 @@ h1 {
 }
 
 .slot-cell.past-slot .slot-comment-input::placeholder {
-	color: #000000;
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-cell.past-slot .slot-comment-input::-webkit-input-placeholder {
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-cell.past-slot .slot-comment-input::-moz-placeholder {
+	color: #000000 !important;
+	opacity: 1;
+}
+
+.slot-cell.past-slot .slot-comment-input:-ms-input-placeholder {
+	color: #000000 !important;
+}
+
+.slot-cell.past-slot .slot-comment-input::-ms-input-placeholder {
+	color: #000000 !important;
 }
 
 .slot-cell.past-slot .slot-comment-send-btn {
