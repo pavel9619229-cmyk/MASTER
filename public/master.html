@@ -19,8 +19,8 @@
 		<main class="layout">
 			<section class="panel panel-main">
 				<header class="header">
-					<p class="eyebrow">Онлайн-календарь — Мастер</p>
-					<h1>Запись на услугу</h1>
+					<p class="eyebrow">Личный кабинет мастера</p>
+					<h1>Онлайн-календарь для записи на парикмахерские услуги к мастеру</h1>
 					<p class="subtitle">
 						Клик по слоту выбирает статус, кнопка Подтвердить применяет его.
 					</p>
@@ -54,6 +54,19 @@
 				<section id="settings-section">
 					<h2>Рабочие дни выбранной недели</h2>
 					<form id="settings-form" class="settings-form">
+						<fieldset class="workdays-fieldset">
+							<legend>Данные мастера</legend>
+							<div class="master-contact-group">
+								<label>
+									Имя мастера
+									<input id="master-name" name="masterName" type="text" maxlength="80" placeholder="Например, Анна" />
+								</label>
+								<label>
+									Телефон мастера
+									<input id="master-phone" name="masterPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+								</label>
+							</div>
+						</fieldset>
 						<fieldset class="workdays-fieldset">
 							<legend>Рабочие часы</legend>
 							<div class="work-hours-group">
