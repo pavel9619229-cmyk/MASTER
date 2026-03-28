@@ -17,6 +17,7 @@ const monthNextBtn = document.getElementById("month-next");
 const monthLabelEl = document.getElementById("month-label");
 const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
+const saveWorkHoursBtn = document.getElementById("save-work-hours");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -623,18 +624,25 @@ if (settingsForm) {
 	settingsForm.addEventListener("submit", (event) => {
 		event.preventDefault();
 		if (role !== "executor") return;
+		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
+		socket.emit("executor:updateWeekWorkDays", {
+			weekStart: dateKey(currentWeekStart),
+			workDays,
+		});
+		setHint("Рабочие дни сохранены.");
+	});
+}
+
+if (saveWorkHoursBtn) {
+	saveWorkHoursBtn.addEventListener("click", () => {
+		if (role !== "executor") return;
 		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
 		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
 		socket.emit("executor:updateWorkingHours", {
 			startHour,
 			endHour,
 		});
-		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
-		socket.emit("executor:updateWeekWorkDays", {
-			weekStart: dateKey(currentWeekStart),
-			workDays,
-		});
-		setHint("Рабочие часы и рабочие дни сохранены.");
+		setHint("Рабочие часы сохранены.");
 	});
 }
 
