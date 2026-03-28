@@ -13,36 +13,38 @@
 		<link rel="stylesheet" href="styles.css" />
 		<script>window.PAGE_ROLE = "executor";</script>
 	</head>
-	<body>
+	<body class="master-page">
 		<div class="background-pattern"></div>
 
 		<main class="layout">
 			<section class="panel panel-main">
-				<header class="header">
-					<p class="eyebrow">Онлайн-календарь для записи на парикмахерские услуги к мастеру</p>
-					<h1>Личный кабинет мастера</h1>
-					<p class="subtitle">Личный кабинет мастера для управления расписанием и подтверждением заявок онлан.</p>
-				</header>
+				<div class="master-topbar">
+					<header class="header">
+						<p class="eyebrow">Онлайн-календарь для записи на парикмахерские услуги к мастеру</p>
+						<h1>Личный кабинет мастера</h1>
+						<p class="subtitle">Личный кабинет мастера для управления расписанием и подтверждением заявок онлан.</p>
+					</header>
 
-				<div class="toolbar master-toolbar">
-					<div class="view-toggle">
-						<button id="view-day" type="button" class="btn view-btn">День</button>
-						<button id="view-week" type="button" class="btn view-btn active">Неделя</button>
-						<button id="view-month" type="button" class="btn view-btn">Месяц</button>
+					<div class="toolbar master-toolbar">
+						<div class="view-toggle">
+							<button id="view-day" type="button" class="btn view-btn">День</button>
+							<button id="view-week" type="button" class="btn view-btn active">Неделя</button>
+							<button id="view-month" type="button" class="btn view-btn">Месяц</button>
+						</div>
+						<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
+							<button id="week-prev" type="button" class="btn">← Неделя</button>
+							<div id="week-label" class="week-label"></div>
+							<button id="week-next" type="button" class="btn">Неделя →</button>
+						</div>
+						<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
+							<button id="month-prev" type="button" class="btn">← Месяц</button>
+							<div id="month-label" class="week-label"></div>
+							<button id="month-next" type="button" class="btn">Месяц →</button>
+						</div>
+						<form method="POST" action="/logout" style="margin:0">
+							<button type="submit" class="btn logout-btn">Выйти</button>
+						</form>
 					</div>
-					<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
-						<button id="week-prev" type="button" class="btn">← Неделя</button>
-						<div id="week-label" class="week-label"></div>
-						<button id="week-next" type="button" class="btn">Неделя →</button>
-					</div>
-					<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
-						<button id="month-prev" type="button" class="btn">← Месяц</button>
-						<div id="month-label" class="week-label"></div>
-						<button id="month-next" type="button" class="btn">Месяц →</button>
-					</div>
-					<form method="POST" action="/logout" style="margin:0">
-						<button type="submit" class="btn logout-btn">Выйти</button>
-					</form>
 				</div>
 
 				<div id="calendar-wrapper" class="calendar-wrapper"></div>

@@ -847,6 +847,11 @@ h1 {
 	justify-content: flex-end;
 }
 
+.master-topbar {
+	position: relative;
+	z-index: 2;
+}
+
 .logout-btn {
 	background: transparent;
 	border-color: var(--border);
@@ -925,6 +930,68 @@ h1 {
 	.calendar {
 		min-width: 720px;
 	}
+
+	.master-page .layout {
+		padding-top: 10px;
+	}
+
+	.master-page .panel-main {
+		padding-top: 248px;
+	}
+
+	.master-page .master-topbar {
+		position: fixed;
+		top: calc(8px + env(safe-area-inset-top));
+		left: 10px;
+		right: 10px;
+		z-index: 30;
+		background: rgba(255, 255, 255, 0.95);
+		border: 1px solid var(--border);
+		border-radius: 16px;
+		box-shadow: 0 8px 28px rgba(20, 34, 39, 0.12);
+		backdrop-filter: blur(7px);
+		padding: 12px;
+	}
+
+	.master-page .master-topbar .header {
+		margin-bottom: 8px;
+	}
+
+	.master-page .master-topbar .eyebrow {
+		font-size: 10px;
+		letter-spacing: 0.1em;
+	}
+
+	.master-page .master-topbar h1 {
+		font-size: 20px;
+		margin: 6px 0 4px;
+	}
+
+	.master-page .master-topbar .subtitle {
+		font-size: 12px;
+		line-height: 1.25;
+	}
+
+	.master-page .master-toolbar {
+		margin-top: 10px;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+	}
+
+	.master-page .master-toolbar .view-toggle {
+		flex: 0 0 auto;
+	}
+
+	.master-page .master-toolbar .week-nav {
+		width: auto;
+		flex: 1 1 100%;
+	}
+
+	.master-page .master-toolbar .btn {
+		padding: 7px 10px;
+	}
 }
 
 @media (max-width: 560px) {
@@ -957,5 +1024,19 @@ h1 {
 
 	.calendar {
 		min-width: 640px;
+	}
+
+	.master-page .panel-main {
+		padding-top: 272px;
+	}
+
+	.master-page .master-topbar {
+		left: 8px;
+		right: 8px;
+		padding: 10px;
+	}
+
+	.master-page .master-topbar .subtitle {
+		display: none;
 	}
 }
