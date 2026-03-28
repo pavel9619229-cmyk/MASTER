@@ -847,9 +847,63 @@ h1 {
 	justify-content: flex-end;
 }
 
-.master-topbar {
-	position: relative;
-	z-index: 2;
+.master-page .panel-main {
+	padding-top: 232px;
+}
+
+.master-page .master-topbar {
+	position: fixed;
+	top: calc(10px + env(safe-area-inset-top));
+	--master-layout-width: min(1252px, calc(100vw - 48px));
+	left: calc((100vw - var(--master-layout-width)) / 2 + 24px);
+	width: calc((var(--master-layout-width) - 24px) * 2.3 / 3.3);
+	z-index: 30;
+	background: rgba(255, 255, 255, 0.95);
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	box-shadow: 0 8px 28px rgba(20, 34, 39, 0.12);
+	backdrop-filter: blur(7px);
+	padding: 12px;
+}
+
+.master-page .master-topbar .header {
+	margin-bottom: 8px;
+}
+
+.master-page .master-topbar .eyebrow {
+	font-size: 10px;
+	letter-spacing: 0.1em;
+}
+
+.master-page .master-topbar h1 {
+	font-size: 20px;
+	margin: 6px 0 4px;
+}
+
+.master-page .master-topbar .subtitle {
+	font-size: 12px;
+	line-height: 1.25;
+}
+
+.master-page .master-toolbar {
+	margin-top: 10px;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+}
+
+.master-page .master-toolbar .view-toggle {
+	flex: 0 0 auto;
+}
+
+.master-page .master-toolbar .week-nav {
+	width: auto;
+	flex: 1 1 100%;
+}
+
+.master-page .master-toolbar .btn {
+	padding: 7px 10px;
 }
 
 .logout-btn {
@@ -871,6 +925,15 @@ h1 {
 
 	.customer-data input {
 		min-width: 170px;
+	}
+
+	.master-page .panel-main {
+		padding-top: 244px;
+	}
+
+	.master-page .master-topbar {
+		left: 24px;
+		width: calc(100vw - 48px);
 	}
 }
 
@@ -940,57 +1003,9 @@ h1 {
 	}
 
 	.master-page .master-topbar {
-		position: fixed;
 		top: calc(8px + env(safe-area-inset-top));
 		left: 10px;
-		right: 10px;
-		z-index: 30;
-		background: rgba(255, 255, 255, 0.95);
-		border: 1px solid var(--border);
-		border-radius: 16px;
-		box-shadow: 0 8px 28px rgba(20, 34, 39, 0.12);
-		backdrop-filter: blur(7px);
-		padding: 12px;
-	}
-
-	.master-page .master-topbar .header {
-		margin-bottom: 8px;
-	}
-
-	.master-page .master-topbar .eyebrow {
-		font-size: 10px;
-		letter-spacing: 0.1em;
-	}
-
-	.master-page .master-topbar h1 {
-		font-size: 20px;
-		margin: 6px 0 4px;
-	}
-
-	.master-page .master-topbar .subtitle {
-		font-size: 12px;
-		line-height: 1.25;
-	}
-
-	.master-page .master-toolbar {
-		margin-top: 10px;
-		flex-direction: row;
-		align-items: center;
-		justify-content: flex-start;
-		gap: 8px;
-	}
-
-	.master-page .master-toolbar .view-toggle {
-		flex: 0 0 auto;
-	}
-
-	.master-page .master-toolbar .week-nav {
-		width: auto;
-		flex: 1 1 100%;
-	}
-
-	.master-page .master-toolbar .btn {
-		padding: 7px 10px;
+		width: calc(100vw - 20px);
 	}
 }
 
@@ -1032,7 +1047,7 @@ h1 {
 
 	.master-page .master-topbar {
 		left: 8px;
-		right: 8px;
+		width: calc(100vw - 16px);
 		padding: 10px;
 	}
 
