@@ -848,6 +848,7 @@ h1 {
 }
 
 .master-page .panel-main {
+	backdrop-filter: none;
 	padding-top: 232px;
 }
 
