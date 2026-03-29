@@ -39,8 +39,6 @@ let customerDraftComments = {};
 let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
-let autoScrollRetryCount = 0;
-const MAX_AUTO_SCROLL_RETRIES = 14;
 
 function ensureCalendarTopbarHeader() {
 	if (calendarTopbarHeader) return calendarTopbarHeader;
@@ -235,43 +233,27 @@ function autoScrollToCurrentSlotRow() {
 	}
 
 	const table = calendarWrapper.querySelector("table.calendar");
-	if (!table) return false;
+	if (!table) return;
 	const targetTime = currentSlotTimeLabel();
 	const rows = Array.from(table.querySelectorAll("tbody tr"));
 	const targetRow = rows.find((row) => {
 		const timeCell = row.querySelector("td.time-label");
 		return timeCell && timeCell.textContent && timeCell.textContent.trim() === targetTime;
 	});
-	if (!targetRow) return false;
+	if (!targetRow) return;
 
-	const topbarOffset = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--master-topbar-offset")) || 0;
-	const headerHeight = table.querySelector("thead") ? table.querySelector("thead").getBoundingClientRect().height : 0;
-	const desiredViewportTop = Math.round(topbarOffset + headerHeight + 4);
-	const currentViewportTop = Math.round(targetRow.getBoundingClientRect().top);
-	const delta = currentViewportTop - desiredViewportTop;
-	if (Math.abs(delta) <= 4) {
+	try {
+		const topbarElem = document.querySelector(".master-page .master-topbar");
+		const topbarHeight = topbarElem ? topbarElem.getBoundingClientRect().height : 0;
+		const theadElem = table.querySelector("thead");
+		const theadHeight = theadElem ? theadElem.getBoundingClientRect().height : 0;
+		const rowRect = targetRow.getBoundingClientRect();
+		const scrollTop = Math.max(0, Math.round(window.scrollY + rowRect.top - topbarHeight - theadHeight - 8));
+		window.scrollTo({ top: scrollTop, behavior: "auto" });
 		hasAutoScrolledToCurrentSlot = true;
-		return true;
+	} catch (e) {
+		console.warn("Auto-scroll to current slot failed:", e);
 	}
-	window.scrollTo({ top: Math.max(0, Math.round(window.scrollY + delta)), behavior: "auto" });
-	return false;
-}
-
-function scheduleAutoScrollToCurrentSlot() {
-	if (hasAutoScrolledToCurrentSlot || currentView === "month") return;
-	requestAnimationFrame(() => {
-		const done = autoScrollToCurrentSlotRow();
-		if (done || hasAutoScrolledToCurrentSlot) {
-			autoScrollRetryCount = 0;
-			return;
-		}
-		if (autoScrollRetryCount >= MAX_AUTO_SCROLL_RETRIES) {
-			autoScrollRetryCount = 0;
-			return;
-		}
-		autoScrollRetryCount += 1;
-		setTimeout(scheduleAutoScrollToCurrentSlot, 120);
-	});
 }
 
 function slotDateTime(slot) {
