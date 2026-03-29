@@ -44,6 +44,7 @@ body {
 	max-width: 1300px;
 	margin: 0 auto;
 	padding: 24px;
+	min-width: 0;
 }
 
 .panel {
@@ -57,6 +58,7 @@ body {
 .panel-main,
 .panel-side {
 	padding: 22px;
+	min-width: 0;
 }
 
 .panel-side {
@@ -152,6 +154,7 @@ h1 {
 .calendar-wrapper {
 	margin-top: 18px;
 	overflow-x: auto;
+	max-width: 100%;
 }
 
 .calendar {

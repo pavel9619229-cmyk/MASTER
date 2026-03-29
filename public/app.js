@@ -60,9 +60,9 @@ function updateMasterLayoutOffset() {
 
 function updateSettingsCompactMode() {
 	if (!settingsPanel) return;
-	const panelWidth = settingsPanel.getBoundingClientRect().width;
-	settingsPanel.classList.toggle("settings-compact", panelWidth > 0 && panelWidth <= 760);
-	settingsPanel.classList.toggle("settings-compact-xs", panelWidth > 0 && panelWidth <= 420);
+	const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+	settingsPanel.classList.toggle("settings-compact", viewportWidth <= 980);
+	settingsPanel.classList.toggle("settings-compact-xs", viewportWidth <= 560);
 }
 
 function clearMasterTopbarHeader() {
