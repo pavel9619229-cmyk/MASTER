@@ -660,6 +660,8 @@ io.on("connection", (socket) => {
 				customerId,
 				kind: "comment",
 				comment: slot.customerComment,
+				customerName: slot.customerName || "",
+				customerPhone: slot.customerPhone || "",
 			},
 		];
 		slot.updatedAt = new Date().toISOString();
