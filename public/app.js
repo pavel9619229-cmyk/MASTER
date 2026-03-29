@@ -341,15 +341,11 @@ function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
 }
 
-function getStatusLabel(status, slot = null) {
+function getStatusLabel(status) {
 	const normalized = normalizeStatus(status);
 	if (normalized === "free") return "свободно";
 	if (normalized === "requested") return "запрос";
 	if (normalized === "confirmed") return "подтверждено";
-	if (normalized === "split") {
-		if (role === "executor") return "подтверждено";
-		return slot?.isOwned ? "подтверждено" : "свободно";
-	}
 	return "занято";
 }
 
@@ -359,14 +355,13 @@ function canClickSlot(slot) {
 	if (role === "customer") {
 		return normalized === "free" || normalized === "requested";
 	}
-	return ["free", "requested", "confirmed", "rejected", "split"].includes(normalized);
+	return ["free", "requested", "confirmed", "rejected"].includes(normalized);
 }
 
 function nextExecutorStatus(currentStatus) {
 	const normalized = normalizeStatus(currentStatus);
 	if (normalized === "requested") return "confirmed";
-	if (normalized === "confirmed") return "split";
-	if (normalized === "split") return "rejected";
+	if (normalized === "confirmed") return "rejected";
 	if (normalized === "rejected") return "free";
 	return "confirmed";
 }
@@ -426,8 +421,8 @@ function historyEntryText(entry) {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
 		return `${time} — клиент: ${entry.comment || ""}`;
 	}
-	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "", role === "customer" ? { isOwned: true } : null)}`;
-	return `${time} — клиент: ${getStatusLabel(entry.toStatus || "", role === "customer" ? { isOwned: true } : null)}`;
+	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "")}`;
+	return `${time} — клиент: ${getStatusLabel(entry.toStatus || "")}`;
 }
 
 function hasStatusDraftChange(slot) {
@@ -564,7 +559,7 @@ function renderCalendar() {
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
-								<span class="slot-label">${getStatusLabel(draftStatus, slot)}</span>
+								<span class="slot-label">${getStatusLabel(draftStatus)}</span>
 							</button>
 							${confirmBtnHtml}
 						</div>

@@ -327,10 +327,8 @@ initDefaultWeeks();
 
 function mapCustomerStatus(slot, belongsToCustomer) {
 	if (belongsToCustomer) {
-		if (slot.status === "split") return "confirmed";
 		return slot.status;
 	}
-	if (slot.status === "split") return "free";
 	if (slot.status === "free") return "free";
 	return "busy";
 }
@@ -349,7 +347,6 @@ function sanitizeSlotForCustomer(slot, customerId) {
 		datePart: slot.datePart,
 		timePart: slot.timePart,
 		kind: slot.kind,
-		isOwned: belongs,
 		status: mapCustomerStatus(slot, belongs),
 		updatedAt: slot.updatedAt,
 		customerComment: belongs ? slot.customerComment || "" : "",
@@ -410,24 +407,16 @@ function buildStateForSocket(socket) {
 			return;
 		}
 
-		const visibleForOtherCustomers = group.filter((s) => !(s.kind === "primary" && s.status === "split"));
-		const pool = visibleForOtherCustomers.length > 0 ? visibleForOtherCustomers : group;
-		const freeInPool = pool.filter((s) => s.status === "free");
-		const freeCandidate = freeInPool.find((s) => s.kind === "extra") || freeInPool[0] || null;
-		if (freeCandidate) {
-			customerSlots[freeCandidate.id] = sanitizeSlotForCustomer(freeCandidate, currentCustomerId);
+		const extras = group.filter((s) => s.kind === "extra");
+		if (extras.length > 0) {
+			const candidate = extras.find((s) => s.status === "free") || extras[0];
+			customerSlots[candidate.id] = sanitizeSlotForCustomer(candidate, currentCustomerId);
 			return;
 		}
 
-		const extraCandidate = pool.find((s) => s.kind === "extra") || null;
-		if (extraCandidate) {
-			customerSlots[extraCandidate.id] = sanitizeSlotForCustomer(extraCandidate, currentCustomerId);
-			return;
-		}
-
-		const primaryCandidate = pool.find((s) => s.kind === "primary") || pool[0] || null;
-		if (primaryCandidate) {
-			customerSlots[primaryCandidate.id] = sanitizeSlotForCustomer(primaryCandidate, currentCustomerId);
+		const primary = group.find((s) => s.kind === "primary") || group[0];
+		if (primary) {
+			customerSlots[primary.id] = sanitizeSlotForCustomer(primary, currentCustomerId);
 		}
 	});
 
@@ -547,25 +536,18 @@ io.on("connection", (socket) => {
 			return;
 		}
 
-		const allowedStatuses = ["free", "requested", "confirmed", "rejected", "split"];
+		const allowedStatuses = ["free", "requested", "confirmed", "rejected"];
 		const normalizedSelected = normalizeStatus(selectedStatus);
 		if (!allowedStatuses.includes(normalizedSelected)) return;
 
-		if (normalizedSelected === "split") {
-			if (slot.kind !== "primary") {
-				socket.emit("error:message", "Статус 'частично' доступен только для основного слота.");
-				return;
-			}
-			slot.status = "split";
-			ensureExtraSlot(slot);
-		} else if (normalizedSelected === "free") {
+		if (normalizedSelected === "free") {
 			resetSlot(slot);
 			if (slot.kind === "primary") {
 				tryRemoveUnusedExtra(slot);
 			}
 		} else {
 			slot.status = normalizedSelected;
-			if (slot.kind === "primary" && normalizedSelected !== "split") {
+			if (slot.kind === "primary") {
 				tryRemoveUnusedExtra(slot);
 			}
 		}
