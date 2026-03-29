@@ -38,6 +38,7 @@ let executorDraftComments = {};
 let customerDraftComments = {};
 let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
+let hasAutoScrolledToCurrentSlot = false;
 
 function ensureCalendarTopbarHeader() {
 	if (calendarTopbarHeader) return calendarTopbarHeader;
@@ -202,6 +203,47 @@ function dayLabelText(day) {
 
 function currentNow() {
 	return appState.meta?.nowIso ? new Date(appState.meta.nowIso) : new Date();
+}
+
+function currentSlotTimeLabel() {
+	const now = currentNow();
+	const step = Math.max(1, Number(appState.settings?.slotMinutes ?? 15));
+	const startHour = Number(appState.settings?.startHour ?? 9);
+	const endHour = Number(appState.settings?.endHour ?? 18);
+	const startMinutes = Math.max(0, startHour * 60);
+	const endMinutes = Math.max(startMinutes + step, endHour * 60);
+	const lastSlotStart = endMinutes - step;
+	const nowMinutes = now.getHours() * 60 + now.getMinutes();
+	const boundedNow = Math.min(Math.max(nowMinutes, startMinutes), lastSlotStart);
+	const offset = boundedNow - startMinutes;
+	const roundedOffset = Math.floor(offset / step) * step;
+	const slotMinutes = startMinutes + roundedOffset;
+	return `${pad(Math.floor(slotMinutes / 60))}:${pad(slotMinutes % 60)}`;
+}
+
+function autoScrollToCurrentSlotRow() {
+	if (!calendarWrapper || currentView === "month" || hasAutoScrolledToCurrentSlot) return;
+	const todayKey = dateKey(startOfDay(currentNow()));
+	const visibleToday = currentView === "day"
+		? dateKey(startOfDay(currentDay)) === todayKey
+		: dateKey(currentWeekStart) <= todayKey && dateKey(addDays(currentWeekStart, 6)) >= todayKey;
+	if (!visibleToday) return;
+
+	const table = calendarWrapper.querySelector("table.calendar");
+	if (!table) return;
+	const targetTime = currentSlotTimeLabel();
+	const rows = Array.from(table.querySelectorAll("tbody tr"));
+	const targetRow = rows.find((row) => {
+		const timeCell = row.querySelector("td.time-label");
+		return timeCell && timeCell.textContent && timeCell.textContent.trim() === targetTime;
+	});
+	if (!targetRow) return;
+
+	const topbarOffset = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--master-topbar-offset")) || 0;
+	const headerHeight = table.querySelector("thead") ? table.querySelector("thead").getBoundingClientRect().height : 0;
+	const targetTop = window.scrollY + targetRow.getBoundingClientRect().top - topbarOffset - headerHeight - 4;
+	window.scrollTo({ top: Math.max(0, Math.round(targetTop)), behavior: "auto" });
+	hasAutoScrolledToCurrentSlot = true;
 }
 
 function slotDateTime(slot) {
@@ -483,6 +525,9 @@ function renderCalendar() {
 	} else {
 		clearMasterTopbarHeader();
 	}
+	requestAnimationFrame(() => {
+		autoScrollToCurrentSlotRow();
+	});
 
 	calendarWrapper.querySelectorAll("[data-slot-id]").forEach((el) => {
 		el.addEventListener("click", () => {
