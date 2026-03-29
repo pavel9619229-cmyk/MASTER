@@ -933,10 +933,26 @@ if (customerPhoneInput) {
 		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
 		syncCustomerIdentityGate();
 	});
+	customerPhoneInput.addEventListener("change", () => {
+		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
+		syncCustomerIdentityGate();
+	});
+	customerPhoneInput.addEventListener("blur", () => {
+		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
+		syncCustomerIdentityGate();
+	});
 }
 
 if (customerNameInput) {
 	customerNameInput.addEventListener("input", () => {
+		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
+		syncCustomerIdentityGate();
+	});
+	customerNameInput.addEventListener("change", () => {
+		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
+		syncCustomerIdentityGate();
+	});
+	customerNameInput.addEventListener("blur", () => {
 		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
 		syncCustomerIdentityGate();
 	});
@@ -1057,6 +1073,8 @@ if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 updateMasterLayoutOffset();
 updateSettingsCompactMode();
 syncCustomerIdentityGate();
+setTimeout(syncCustomerIdentityGate, 150);
+setTimeout(syncCustomerIdentityGate, 800);
 
 if (role === "executor") {
 	setHint("Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты.");
