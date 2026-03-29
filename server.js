@@ -410,16 +410,24 @@ function buildStateForSocket(socket) {
 			return;
 		}
 
-		const extras = group.filter((s) => s.kind === "extra");
-		if (extras.length > 0) {
-			const candidate = extras.find((s) => s.status === "free") || extras[0];
-			customerSlots[candidate.id] = sanitizeSlotForCustomer(candidate, currentCustomerId);
+		const visibleForOtherCustomers = group.filter((s) => !(s.kind === "primary" && s.status === "split"));
+		const pool = visibleForOtherCustomers.length > 0 ? visibleForOtherCustomers : group;
+		const freeInPool = pool.filter((s) => s.status === "free");
+		const freeCandidate = freeInPool.find((s) => s.kind === "extra") || freeInPool[0] || null;
+		if (freeCandidate) {
+			customerSlots[freeCandidate.id] = sanitizeSlotForCustomer(freeCandidate, currentCustomerId);
 			return;
 		}
 
-		const primary = group.find((s) => s.kind === "primary") || group[0];
-		if (primary) {
-			customerSlots[primary.id] = sanitizeSlotForCustomer(primary, currentCustomerId);
+		const extraCandidate = pool.find((s) => s.kind === "extra") || null;
+		if (extraCandidate) {
+			customerSlots[extraCandidate.id] = sanitizeSlotForCustomer(extraCandidate, currentCustomerId);
+			return;
+		}
+
+		const primaryCandidate = pool.find((s) => s.kind === "primary") || pool[0] || null;
+		if (primaryCandidate) {
+			customerSlots[primaryCandidate.id] = sanitizeSlotForCustomer(primaryCandidate, currentCustomerId);
 		}
 	});
 

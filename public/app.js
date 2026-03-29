@@ -347,7 +347,7 @@ function getStatusLabel(status, slot = null) {
 	if (normalized === "requested") return "запрос";
 	if (normalized === "confirmed") return "подтверждено";
 	if (normalized === "split") {
-		if (role === "executor") return "частично занято";
+		if (role === "executor") return "подтверждено";
 		return slot?.isOwned ? "подтверждено" : "свободно";
 	}
 	return "занято";
