@@ -196,6 +196,11 @@ h1 {
 	box-shadow: 1px 0 0 0 var(--border);
 }
 
+/* Keep sticky table header visible below the fixed master topbar. */
+.master-page .calendar th {
+	top: calc(210px + env(safe-area-inset-top));
+}
+
 .time-label {
 	width: 82px;
 	font-weight: 700;
@@ -952,6 +957,10 @@ h1 {
 		left: 24px;
 		width: calc(100vw - 48px);
 	}
+
+	.master-page .calendar th {
+		top: calc(220px + env(safe-area-inset-top));
+	}
 }
 
 @media (max-width: 760px) {
@@ -1020,6 +1029,10 @@ h1 {
 		left: 10px;
 		width: calc(100vw - 20px);
 	}
+
+	.master-page .calendar th {
+		top: calc(236px + env(safe-area-inset-top));
+	}
 }
 
 @media (max-width: 560px) {
@@ -1062,6 +1075,10 @@ h1 {
 		left: 8px;
 		width: calc(100vw - 16px);
 		padding: 10px;
+	}
+
+	.master-page .calendar th {
+		top: calc(216px + env(safe-area-inset-top));
 	}
 
 	.master-page .master-topbar .subtitle {
