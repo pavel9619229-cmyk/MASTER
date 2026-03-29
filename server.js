@@ -50,6 +50,8 @@ const state = {
 		startHour: 9,
 		endHour: 18,
 		slotMinutes: SLOT_MINUTES,
+		masterName: "",
+		masterPhone: "",
 	},
 	weekWorkDays: {},
 	slots: {},
@@ -753,6 +755,13 @@ io.on("connection", (socket) => {
 		state.settings.startHour = safeStart;
 		state.settings.endHour = safeEnd;
 		syncSlotsForWorkingHours();
+		emitState();
+	});
+
+	socket.on("executor:updateMasterProfile", ({ masterName, masterPhone }) => {
+		if (!isMaster()) return;
+		state.settings.masterName = String(masterName || "").trim().slice(0, 80);
+		state.settings.masterPhone = String(masterPhone || "").trim().slice(0, 30);
 		emitState();
 	});
 });

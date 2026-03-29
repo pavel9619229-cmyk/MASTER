@@ -18,6 +18,9 @@ const monthLabelEl = document.getElementById("month-label");
 const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
 const saveWorkHoursBtn = document.getElementById("save-work-hours");
+const masterNameInput = document.getElementById("master-name");
+const masterPhoneInput = document.getElementById("master-phone");
+const saveMasterProfileBtn = document.getElementById("save-master-profile");
 const masterTopbar = document.querySelector(".master-page .master-topbar");
 const settingsSection = document.getElementById("settings-section");
 const masterSettingsBtn = document.getElementById("master-settings-btn");
@@ -818,6 +821,8 @@ function renderWeekControls() {
 		const selected = Array.isArray(appState.weekWorkDays?.[wk]) ? appState.weekWorkDays[wk] : [];
 		const todayStart = startOfDay(currentNow());
 
+		if (masterNameInput) masterNameInput.value = String(appState.settings?.masterName || "");
+		if (masterPhoneInput) masterPhoneInput.value = String(appState.settings?.masterPhone || "");
 		if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
 		if (workEndHourInput) workEndHourInput.value = String(appState.settings?.endHour ?? 18);
 		
@@ -1016,6 +1021,17 @@ if (saveWorkHoursBtn) {
 			endHour,
 		});
 		setHint("Рабочие часы сохранены.");
+	});
+}
+
+if (saveMasterProfileBtn) {
+	saveMasterProfileBtn.addEventListener("click", () => {
+		if (role !== "executor") return;
+		socket.emit("executor:updateMasterProfile", {
+			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
+			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
+		});
+		setHint("Данные мастера сохранены.");
 	});
 }
 

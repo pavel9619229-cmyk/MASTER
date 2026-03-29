@@ -664,6 +664,12 @@ h1 {
 	font-weight: 600;
 }
 
+.master-data-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 6px;
+}
+
 .master-page .panel-side.settings-compact .settings-form {
 	gap: 12px;
 }
