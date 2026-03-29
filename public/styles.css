@@ -47,6 +47,15 @@ body {
 	min-width: 0;
 }
 
+.customer-page .layout {
+	grid-template-columns: 1fr;
+	max-width: 1200px;
+}
+
+.customer-page .panel-side {
+	display: none;
+}
+
 .panel {
 	background: var(--surface);
 	backdrop-filter: blur(6px);
