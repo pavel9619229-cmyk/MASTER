@@ -40,6 +40,7 @@ let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
 let autoScrollRetryCount = 0;
+const MAX_AUTO_SCROLL_RETRIES = 14;
 
 function ensureCalendarTopbarHeader() {
 	if (calendarTopbarHeader) return calendarTopbarHeader;
@@ -245,10 +246,15 @@ function autoScrollToCurrentSlotRow() {
 
 	const topbarOffset = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--master-topbar-offset")) || 0;
 	const headerHeight = table.querySelector("thead") ? table.querySelector("thead").getBoundingClientRect().height : 0;
-	targetRow.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
-	window.scrollBy({ top: -(Math.round(topbarOffset + headerHeight + 4)), left: 0, behavior: "auto" });
-	hasAutoScrolledToCurrentSlot = true;
-	return true;
+	const desiredViewportTop = Math.round(topbarOffset + headerHeight + 4);
+	const currentViewportTop = Math.round(targetRow.getBoundingClientRect().top);
+	const delta = currentViewportTop - desiredViewportTop;
+	if (Math.abs(delta) <= 4) {
+		hasAutoScrolledToCurrentSlot = true;
+		return true;
+	}
+	window.scrollTo({ top: Math.max(0, Math.round(window.scrollY + delta)), behavior: "auto" });
+	return false;
 }
 
 function scheduleAutoScrollToCurrentSlot() {
@@ -259,12 +265,12 @@ function scheduleAutoScrollToCurrentSlot() {
 			autoScrollRetryCount = 0;
 			return;
 		}
-		if (autoScrollRetryCount >= 6) {
+		if (autoScrollRetryCount >= MAX_AUTO_SCROLL_RETRIES) {
 			autoScrollRetryCount = 0;
 			return;
 		}
 		autoScrollRetryCount += 1;
-		setTimeout(scheduleAutoScrollToCurrentSlot, 90);
+		setTimeout(scheduleAutoScrollToCurrentSlot, 120);
 	});
 }
 
