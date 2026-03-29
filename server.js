@@ -327,7 +327,6 @@ initDefaultWeeks();
 
 function mapCustomerStatus(slot, belongsToCustomer) {
 	if (belongsToCustomer) {
-		if (slot.status === "split") return "confirmed";
 		return slot.status;
 	}
 	if (slot.status === "free") return "free";
@@ -352,7 +351,7 @@ function sanitizeSlotForCustomer(slot, customerId) {
 		updatedAt: slot.updatedAt,
 		customerComment: belongs ? slot.customerComment || "" : "",
 		comment: belongs ? slot.comment || "" : "",
-		history: belongs ? (slot.history || []).map((h) => (h && h.toStatus === "split" ? { ...h, toStatus: "confirmed" } : h)) : [],
+		history: belongs ? (slot.history || []) : [],
 	};
 }
 

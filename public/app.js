@@ -346,7 +346,7 @@ function getStatusLabel(status) {
 	if (normalized === "free") return "свободно";
 	if (normalized === "requested") return "запрос";
 	if (normalized === "confirmed") return "подтверждено";
-	if (normalized === "split") return "частично";
+	if (normalized === "split") return role === "executor" ? "частично занято" : "свободно";
 	return "занято";
 }
 
