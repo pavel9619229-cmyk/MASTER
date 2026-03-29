@@ -853,6 +853,7 @@ h1 {
 
 .master-page .master-hours-footer {
 	grid-column: 1 / -1;
+	order: 3;
 }
 
 .master-page .master-hours-footer .work-hours-group {
