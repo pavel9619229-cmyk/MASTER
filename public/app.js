@@ -222,25 +222,35 @@ function currentSlotTimeLabel() {
 }
 
 function autoScrollToCurrentSlotRow() {
-	if (!calendarWrapper || currentView === "month" || hasAutoScrolledToCurrentSlot) return;
+	if (!calendarWrapper || currentView === "month" || hasAutoScrolledToCurrentSlot) {
+		console.log("autoScroll skip:", { noWrapper: !calendarWrapper, isMonth: currentView === "month", alreadyScrolled: hasAutoScrolledToCurrentSlot });
+		return;
+	}
 	const todayKey = dateKey(startOfDay(currentNow()));
 	const visibleToday = currentView === "day"
 		? dateKey(startOfDay(currentDay)) === todayKey
 		: dateKey(currentWeekStart) <= todayKey && dateKey(addDays(currentWeekStart, 6)) >= todayKey;
 	if (!visibleToday) {
+		console.log("autoScroll: today not visible in range", { todayKey, currentWeekStart: dateKey(currentWeekStart), currentDay: dateKey(currentDay), view: currentView });
 		hasAutoScrolledToCurrentSlot = true;
 		return;
 	}
 
 	const table = calendarWrapper.querySelector("table.calendar");
-	if (!table) return;
+	if (!table) {
+		console.log("autoScroll: no table found");
+		return;
+	}
 	const targetTime = currentSlotTimeLabel();
 	const rows = Array.from(table.querySelectorAll("tbody tr"));
 	const targetRow = rows.find((row) => {
 		const timeCell = row.querySelector("td.time-label");
 		return timeCell && timeCell.textContent && timeCell.textContent.trim() === targetTime;
 	});
-	if (!targetRow) return;
+	if (!targetRow) {
+		console.log("autoScroll: target row not found for time", { targetTime });
+		return;
+	}
 
 	try {
 		const topbarElem = document.querySelector(".master-page .master-topbar");
@@ -249,6 +259,7 @@ function autoScrollToCurrentSlotRow() {
 		const theadHeight = theadElem ? theadElem.getBoundingClientRect().height : 0;
 		const rowRect = targetRow.getBoundingClientRect();
 		const scrollTop = Math.max(0, Math.round(window.scrollY + rowRect.top - topbarHeight - theadHeight - 8));
+		console.log("autoScroll executing", { targetTime, topbarHeight, theadHeight, rowTop: rowRect.top, scrollingTo: scrollTop });
 		window.scrollTo({ top: scrollTop, behavior: "auto" });
 		hasAutoScrolledToCurrentSlot = true;
 	} catch (e) {
@@ -534,8 +545,7 @@ function renderCalendar() {
 		renderMasterTopbarHeader(thead);
 	} else {
 		clearMasterTopbarHeader();
-	}
-	scheduleAutoScrollToCurrentSlot();
+	}	console.log("renderCalendar done, scheduling autoScroll", { currentView, hasAutoScrolled: hasAutoScrolledToCurrentSlot });	scheduleAutoScrollToCurrentSlot();
 
 	calendarWrapper.querySelectorAll("[data-slot-id]").forEach((el) => {
 		el.addEventListener("click", () => {
