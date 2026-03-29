@@ -40,6 +40,44 @@ let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
 
+function saveViewState() {
+	const state = {
+		view: currentView,
+		day: dateKey(currentDay),
+		weekStart: dateKey(currentWeekStart),
+		monthStart: dateKey(currentMonthStart),
+	};
+	try {
+		localStorage.setItem("masterViewState", JSON.stringify(state));
+	} catch (e) {
+		console.warn("Failed to save view state:", e);
+	}
+}
+
+function restoreViewState() {
+	try {
+		const saved = localStorage.getItem("masterViewState");
+		if (!saved) return;
+		const state = JSON.parse(saved);
+		if (state.view) currentView = state.view;
+		if (state.day) {
+			const d = parseDateKey(state.day);
+			if (d) currentDay = d;
+		}
+		if (state.weekStart) {
+			const w = parseDateKey(state.weekStart);
+			if (w) currentWeekStart = w;
+		}
+		if (state.monthStart) {
+			const m = parseDateKey(state.monthStart);
+			if (m) currentMonthStart = m;
+		}
+		console.log("Restored view state:", state);
+	} catch (e) {
+		console.warn("Failed to restore view state:", e);
+	}
+}
+
 function ensureCalendarTopbarHeader() {
 	if (calendarTopbarHeader) return calendarTopbarHeader;
 	if (!masterTopbar || role !== "executor") return null;
@@ -761,6 +799,7 @@ function renderMonthView() {
 			currentDay = startOfDay(clickedDay);
 			currentWeekStart = startOfWeek(clickedDay);
 			currentView = "week";
+			saveViewState();
 			updateViewUI();
 			renderWeekControls();
 			renderCalendar();
@@ -777,6 +816,7 @@ if (weekPrevBtn) {
 			currentWeekStart = addDays(currentWeekStart, -7);
 			currentDay = startOfDay(currentWeekStart);
 		}
+		saveViewState();
 		renderWeekControls();
 		renderCalendar();
 	});
@@ -791,6 +831,7 @@ if (weekNextBtn) {
 			currentWeekStart = addDays(currentWeekStart, 7);
 			currentDay = startOfDay(currentWeekStart);
 		}
+		saveViewState();
 		renderWeekControls();
 		renderCalendar();
 	});
@@ -843,6 +884,7 @@ socket.on("state", (nextState) => {
 	customerDraftStatuses = {};
 	executorDraftComments = {};
 	customerDraftComments = {};
+	restoreViewState();
 	updateViewUI();
 	renderWeekControls();
 	renderView();
@@ -862,6 +904,7 @@ if (viewDayBtn) {
 			if (currentDay < todaySnap) currentDay = todaySnap;
 		}
 		currentWeekStart = startOfWeek(currentDay);
+		saveViewState();
 		updateViewUI();
 		renderWeekControls();
 		renderCalendar();
@@ -872,6 +915,7 @@ if (viewWeekBtn) {
 	viewWeekBtn.addEventListener("click", () => {
 		currentView = "week";
 		currentWeekStart = startOfWeek(currentDay);
+		saveViewState();
 		updateViewUI();
 		renderWeekControls();
 		renderCalendar();
@@ -881,6 +925,7 @@ if (viewWeekBtn) {
 if (viewMonthBtn) {
 	viewMonthBtn.addEventListener("click", () => {
 		currentView = "month";
+		saveViewState();
 		currentMonthStart = startOfMonth(currentWeekStart);
 		updateViewUI();
 		renderMonthView();
@@ -890,6 +935,7 @@ if (viewMonthBtn) {
 if (monthPrevBtn) {
 	monthPrevBtn.addEventListener("click", () => {
 		currentMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() - 1, 1);
+		saveViewState();
 		if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
 		renderMonthView();
 	});
@@ -897,6 +943,7 @@ if (monthPrevBtn) {
 
 if (monthNextBtn) {
 	monthNextBtn.addEventListener("click", () => {
+		saveViewState();
 		currentMonthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + 1, 1);
 		if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
 		renderMonthView();
