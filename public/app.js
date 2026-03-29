@@ -477,7 +477,9 @@ function historyEntryText(entry) {
 	const time = entry?.at ? `${pad(new Date(entry.at).getHours())}:${pad(new Date(entry.at).getMinutes())}` : "";
 	if (entry.kind === "comment") {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
-		if (role === "executor" && String(entry.customerName || "").length > 0 && String(entry.customerPhone || "").length > 0) {
+		const hasCustomerInfo = role === "executor" && entry.customerName && entry.customerPhone;
+		console.log("Comment entry debug:", { role, customerName: entry.customerName, customerPhone: entry.customerPhone, hasCustomerInfo });
+		if (hasCustomerInfo) {
 			return `${time} — клиент "${entry.customerName}" ${entry.customerPhone}: ${entry.comment || ""}`;
 		}
 		return `${time} — клиент: ${entry.comment || ""}`;
