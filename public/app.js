@@ -39,6 +39,7 @@ let customerDraftComments = {};
 let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
+let autoScrollRetryCount = 0;
 
 function ensureCalendarTopbarHeader() {
 	if (calendarTopbarHeader) return calendarTopbarHeader;
@@ -227,23 +228,44 @@ function autoScrollToCurrentSlotRow() {
 	const visibleToday = currentView === "day"
 		? dateKey(startOfDay(currentDay)) === todayKey
 		: dateKey(currentWeekStart) <= todayKey && dateKey(addDays(currentWeekStart, 6)) >= todayKey;
-	if (!visibleToday) return;
+	if (!visibleToday) {
+		hasAutoScrolledToCurrentSlot = true;
+		return;
+	}
 
 	const table = calendarWrapper.querySelector("table.calendar");
-	if (!table) return;
+	if (!table) return false;
 	const targetTime = currentSlotTimeLabel();
 	const rows = Array.from(table.querySelectorAll("tbody tr"));
 	const targetRow = rows.find((row) => {
 		const timeCell = row.querySelector("td.time-label");
 		return timeCell && timeCell.textContent && timeCell.textContent.trim() === targetTime;
 	});
-	if (!targetRow) return;
+	if (!targetRow) return false;
 
 	const topbarOffset = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--master-topbar-offset")) || 0;
 	const headerHeight = table.querySelector("thead") ? table.querySelector("thead").getBoundingClientRect().height : 0;
-	const targetTop = window.scrollY + targetRow.getBoundingClientRect().top - topbarOffset - headerHeight - 4;
-	window.scrollTo({ top: Math.max(0, Math.round(targetTop)), behavior: "auto" });
+	targetRow.scrollIntoView({ block: "start", inline: "nearest", behavior: "auto" });
+	window.scrollBy({ top: -(Math.round(topbarOffset + headerHeight + 4)), left: 0, behavior: "auto" });
 	hasAutoScrolledToCurrentSlot = true;
+	return true;
+}
+
+function scheduleAutoScrollToCurrentSlot() {
+	if (hasAutoScrolledToCurrentSlot || currentView === "month") return;
+	requestAnimationFrame(() => {
+		const done = autoScrollToCurrentSlotRow();
+		if (done || hasAutoScrolledToCurrentSlot) {
+			autoScrollRetryCount = 0;
+			return;
+		}
+		if (autoScrollRetryCount >= 6) {
+			autoScrollRetryCount = 0;
+			return;
+		}
+		autoScrollRetryCount += 1;
+		setTimeout(scheduleAutoScrollToCurrentSlot, 90);
+	});
 }
 
 function slotDateTime(slot) {
@@ -525,9 +547,7 @@ function renderCalendar() {
 	} else {
 		clearMasterTopbarHeader();
 	}
-	requestAnimationFrame(() => {
-		autoScrollToCurrentSlotRow();
-	});
+	scheduleAutoScrollToCurrentSlot();
 
 	calendarWrapper.querySelectorAll("[data-slot-id]").forEach((el) => {
 		el.addEventListener("click", () => {
