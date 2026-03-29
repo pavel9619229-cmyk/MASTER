@@ -18,7 +18,6 @@ const monthLabelEl = document.getElementById("month-label");
 const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
 const saveWorkHoursBtn = document.getElementById("save-work-hours");
-const masterTopbar = document.querySelector(".master-page .master-topbar");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -33,76 +32,6 @@ let executorDraftStatuses = {};
 let customerDraftStatuses = {};
 let executorDraftComments = {};
 let customerDraftComments = {};
-let masterTopbarBindingsAdded = false;
-let calendarTopbarHeader = document.getElementById("calendar-topbar-header");
-
-function ensureCalendarTopbarHeader() {
-	if (calendarTopbarHeader) return calendarTopbarHeader;
-	if (!masterTopbar || role !== "executor") return null;
-	calendarTopbarHeader = document.createElement("div");
-	calendarTopbarHeader.id = "calendar-topbar-header";
-	calendarTopbarHeader.className = "calendar-topbar-header hidden";
-	calendarTopbarHeader.setAttribute("aria-hidden", "true");
-	masterTopbar.appendChild(calendarTopbarHeader);
-	return calendarTopbarHeader;
-}
-
-function updateMasterLayoutOffset() {
-	if (!masterTopbar) return;
-	const top = Number.parseFloat(window.getComputedStyle(masterTopbar).top) || 0;
-	const extraGap = 14;
-	const offset = Math.ceil(masterTopbar.getBoundingClientRect().height + top + extraGap);
-	document.documentElement.style.setProperty("--master-topbar-offset", `${offset}px`);
-}
-
-function clearMasterTopbarHeader() {
-	ensureCalendarTopbarHeader();
-	if (!calendarTopbarHeader) return;
-	calendarTopbarHeader.innerHTML = "";
-	calendarTopbarHeader.classList.add("hidden");
-	updateMasterLayoutOffset();
-}
-
-function syncMasterTopbarHeader() {
-	if (!calendarTopbarHeader || calendarTopbarHeader.classList.contains("hidden")) return;
-	const bodyTable = calendarWrapper ? calendarWrapper.querySelector("table.calendar") : null;
-	const topTable = calendarTopbarHeader.querySelector("table.calendar-topbar-table");
-	if (!bodyTable || !topTable) return;
-
-	const sourceRow = bodyTable.querySelector("tbody tr");
-	const sourceCells = sourceRow ? Array.from(sourceRow.children) : [];
-	const headerCells = Array.from(topTable.querySelectorAll("th"));
-	if (sourceCells.length === headerCells.length && sourceCells.length > 0) {
-		headerCells.forEach((cell, i) => {
-			cell.style.width = `${Math.ceil(sourceCells[i].getBoundingClientRect().width)}px`;
-		});
-	}
-
-	topTable.style.width = `${Math.ceil(bodyTable.scrollWidth)}px`;
-	topTable.style.transform = `translateX(${-calendarWrapper.scrollLeft}px)`;
-	updateMasterLayoutOffset();
-}
-
-function ensureMasterTopbarBindings() {
-	if (!calendarWrapper || masterTopbarBindingsAdded) return;
-	calendarWrapper.addEventListener("scroll", () => {
-		syncMasterTopbarHeader();
-	}, { passive: true });
-	window.addEventListener("resize", () => {
-		syncMasterTopbarHeader();
-		updateMasterLayoutOffset();
-	});
-	masterTopbarBindingsAdded = true;
-}
-
-function renderMasterTopbarHeader(theadHtml) {
-	ensureCalendarTopbarHeader();
-	if (!calendarTopbarHeader) return;
-	calendarTopbarHeader.innerHTML = `<table class="calendar calendar-topbar-table">${theadHtml}</table>`;
-	calendarTopbarHeader.classList.remove("hidden");
-	ensureMasterTopbarBindings();
-	syncMasterTopbarHeader();
-}
 
 function setHint(text) {
 	if (hint) hint.textContent = text;
@@ -331,7 +260,6 @@ function renderCalendar() {
 	}
 	if (days.length === 0) {
 		calendarWrapper.innerHTML = "<p>Нет доступных дней на этой неделе.</p>";
-		clearMasterTopbarHeader();
 		return;
 	}
 	const dayKeys = days.map(dateKey);
@@ -340,7 +268,6 @@ function renderCalendar() {
 	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => slot.datePart >= dayStartKey && slot.datePart <= dayEndKey);
 	if (visibleSlots.length === 0) {
 		calendarWrapper.innerHTML = "<p>Нет слотов на выбранный период.</p>";
-		clearMasterTopbarHeader();
 		return;
 	}
 
@@ -447,13 +374,7 @@ function renderCalendar() {
 		return `<tr><td class="time-label">${time}</td>${cells}</tr>`;
 	}).join("");
 
-	if (role === "executor" && ensureCalendarTopbarHeader()) {
-		calendarWrapper.innerHTML = `<table class="calendar"><tbody>${rows}</tbody></table>`;
-		renderMasterTopbarHeader(thead);
-	} else {
-		calendarWrapper.innerHTML = `<table class="calendar">${thead}<tbody>${rows}</tbody></table>`;
-		clearMasterTopbarHeader();
-	}
+	calendarWrapper.innerHTML = `<table class="calendar">${thead}<tbody>${rows}</tbody></table>`;
 
 	calendarWrapper.querySelectorAll("[data-slot-id]").forEach((el) => {
 		el.addEventListener("click", () => {
@@ -597,7 +518,6 @@ function renderView() {
 }
 
 function renderMonthView() {
-	clearMasterTopbarHeader();
 	const monthStart = currentMonthStart;
 	const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
 	const gridStart = startOfWeek(monthStart);
@@ -794,8 +714,6 @@ if (monthNextBtn) {
 if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 	customerPhoneInput.value = PHONE_PREFIX;
 }
-
-updateMasterLayoutOffset();
 
 setHint(role === "executor"
 	? "Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты."

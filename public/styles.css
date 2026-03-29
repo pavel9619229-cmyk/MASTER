@@ -861,7 +861,7 @@ h1 {
 }
 
 .master-page .layout {
-	margin-top: var(--master-topbar-offset, 210px);
+	margin-top: 210px;
 }
 
 @media (min-width: 981px) {
@@ -935,30 +935,6 @@ h1 {
 	padding: 7px 10px;
 }
 
-.master-page .calendar-topbar-header {
-	margin-top: 8px;
-	overflow: hidden;
-	border: 1px solid var(--border);
-	border-radius: 12px;
-	background: #f9fbfa;
-}
-
-.master-page .calendar-topbar-header .calendar {
-	margin: 0;
-	min-width: 890px;
-	width: max-content;
-}
-
-.master-page .calendar-topbar-header .calendar th {
-	white-space: nowrap;
-	font-weight: 700;
-}
-
-.master-page .calendar-topbar-table {
-	transform: translateX(0);
-	will-change: transform;
-}
-
 .logout-btn {
 	background: transparent;
 	border-color: var(--border);
@@ -981,7 +957,7 @@ h1 {
 	}
 
 	.master-page .layout {
-		margin-top: var(--master-topbar-offset, 220px);
+		margin-top: 220px;
 	}
 
 	.master-page .master-topbar {
@@ -1050,7 +1026,7 @@ h1 {
 	}
 
 	.master-page .layout {
-		margin-top: var(--master-topbar-offset, 236px);
+		margin-top: 236px;
 	}
 
 	.master-page .master-topbar {
@@ -1100,7 +1076,7 @@ h1 {
 	}
 
 	.master-page .layout {
-		margin-top: var(--master-topbar-offset, 216px);
+		margin-top: 216px;
 	}
 
 	.master-page .master-topbar {
