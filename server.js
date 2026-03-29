@@ -518,6 +518,8 @@ io.on("connection", (socket) => {
 
 		const customerId = getOrCreateCustomerId(socket.request);
 		const normalizedSelected = normalizeStatus(selectedStatus);
+		let historyCustomerName = String(slot.customerName || "");
+		let historyCustomerPhone = String(slot.customerPhone || "");
 		if (normalizedSelected !== "requested" && normalizedSelected !== "free") return;
 
 		const ownedByCurrentCustomer = slot.customerId && slot.customerId === customerId;
@@ -541,11 +543,15 @@ io.on("connection", (socket) => {
 			slot.customerId = customerId;
 			slot.customerName = safeName;
 			slot.customerPhone = safePhone;
+			historyCustomerName = safeName;
+			historyCustomerPhone = safePhone;
 		} else {
 			if (!ownedByCurrentCustomer) {
 				socket.emit("error:message", "Нельзя отменить чужую запись.");
 				return;
 			}
+			historyCustomerName = String(slot.customerName || "");
+			historyCustomerPhone = String(slot.customerPhone || "");
 			resetSlot(slot);
 		}
 
@@ -557,6 +563,8 @@ io.on("connection", (socket) => {
 				by: "customer",
 				customerId,
 				toStatus: slot.status,
+				customerName: historyCustomerName,
+				customerPhone: historyCustomerPhone,
 			},
 		];
 		slot.updatedAt = new Date().toISOString();

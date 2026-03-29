@@ -349,10 +349,31 @@ function getStatusLabel(status) {
 	return "занято";
 }
 
+function getSlotCustomerIdentity(slot) {
+	const directName = String(slot?.customerName || "");
+	const directPhone = String(slot?.customerPhone || "");
+	if (directName && directPhone) {
+		return { name: directName, phone: directPhone };
+	}
+	const history = Array.isArray(slot?.history) ? slot.history : [];
+	for (let i = history.length - 1; i >= 0; i -= 1) {
+		const item = history[i] || {};
+		const hName = String(item.customerName || "");
+		const hPhone = String(item.customerPhone || "");
+		if (hName && hPhone) {
+			return { name: hName, phone: hPhone };
+		}
+	}
+	return { name: "", phone: "" };
+}
+
 function getSlotLabel(slot, status) {
 	const normalized = normalizeStatus(status);
-	if (normalized === "requested" && role === "executor" && slot.customerName && slot.customerPhone) {
-		return `запрос от "${slot.customerName}" ${slot.customerPhone}`;
+	if (normalized === "requested" && role === "executor") {
+		const identity = getSlotCustomerIdentity(slot);
+		if (identity.name && identity.phone) {
+			return `запрос от "${identity.name}" ${identity.phone}`;
+		}
 	}
 	return getStatusLabel(status);
 }
@@ -475,8 +496,9 @@ function getTimesFromSettings() {
 
 function historyEntryText(entry, slot) {
 	const time = entry?.at ? `${pad(new Date(entry.at).getHours())}:${pad(new Date(entry.at).getMinutes())}` : "";
-	const customerName = String(entry?.customerName || slot?.customerName || "");
-	const customerPhone = String(entry?.customerPhone || slot?.customerPhone || "");
+	const identity = getSlotCustomerIdentity(slot);
+	const customerName = String(entry?.customerName || identity.name || "");
+	const customerPhone = String(entry?.customerPhone || identity.phone || "");
 	const customerLabel = (role === "executor" && customerName && customerPhone)
 		? `клиент "${customerName}" ${customerPhone}`
 		: "клиент";
