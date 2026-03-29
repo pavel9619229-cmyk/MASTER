@@ -1,4 +1,5 @@
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
 const http = require("http");
 const session = require("express-session");
@@ -38,6 +39,8 @@ io.use((socket, next) => {
 const PORT = process.env.PORT || 3000;
 const SLOT_MINUTES = 15;
 const CLIENT_COOKIE_NAME = "client_id";
+const MASTER_REMEMBER_COOKIE_NAME = "master_auth";
+const MASTER_REMEMBER_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
 const MASTER_PAST_DAYS = 31;
 const MASTER_FUTURE_DAYS = 62;
 const CUSTOMER_FUTURE_DAYS = 28;
@@ -140,6 +143,38 @@ function getCustomerIdFromCookieHeader(cookieHeader) {
 	return value.trim();
 }
 
+function getMasterCredentials() {
+	return {
+		email: process.env.MASTER_EMAIL || "master@example.com",
+		password: process.env.MASTER_PASSWORD || "changeme",
+	};
+}
+
+function createMasterRememberToken() {
+	const { email, password } = getMasterCredentials();
+	const secret = process.env.SESSION_SECRET || "dev-secret-change-in-production";
+	const payload = `${email.trim().toLowerCase()}|${password}`;
+	return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+}
+
+function hasValidMasterRememberCookie(req) {
+	const cookies = parseCookies(req?.headers?.cookie);
+	const token = String(cookies[MASTER_REMEMBER_COOKIE_NAME] || "").trim();
+	if (!token) return false;
+	const expected = createMasterRememberToken();
+	return token === expected;
+}
+
+function persistMasterRememberCookie(res) {
+	res.cookie(MASTER_REMEMBER_COOKIE_NAME, createMasterRememberToken(), {
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge: MASTER_REMEMBER_MAX_AGE,
+		path: "/",
+	});
+}
+
 function getOrCreateCustomerId(requestObj) {
 	if (!requestObj) return generateId();
 
@@ -184,6 +219,13 @@ function ensureCustomerIdentity(req, res, next) {
 }
 
 app.use(ensureCustomerIdentity);
+
+app.use((req, res, next) => {
+	if (req.session?.isMaster) return next();
+	if (!hasValidMasterRememberCookie(req)) return next();
+	req.session.isMaster = true;
+	next();
+});
 
 function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
@@ -669,20 +711,26 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
 	const { email, password } = req.body;
-	const MASTER_EMAIL = process.env.MASTER_EMAIL || "master@example.com";
-	const MASTER_PASSWORD = process.env.MASTER_PASSWORD || "changeme";
+	const { email: MASTER_EMAIL, password: MASTER_PASSWORD } = getMasterCredentials();
 	if (
 		typeof email === "string" && typeof password === "string" &&
 		email.trim().toLowerCase() === MASTER_EMAIL.trim().toLowerCase() &&
 		password === MASTER_PASSWORD
 	) {
 		req.session.isMaster = true;
+		persistMasterRememberCookie(res);
 		return res.redirect("/master");
 	}
 	res.redirect("/login?error=1");
 });
 
 app.post("/logout", (req, res) => {
+	res.clearCookie(MASTER_REMEMBER_COOKIE_NAME, {
+		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+	});
 	req.session.destroy(() => res.redirect("/login"));
 });
 
