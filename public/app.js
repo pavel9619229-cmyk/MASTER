@@ -341,12 +341,15 @@ function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
 }
 
-function getStatusLabel(status) {
+function getStatusLabel(status, slot = null) {
 	const normalized = normalizeStatus(status);
 	if (normalized === "free") return "свободно";
 	if (normalized === "requested") return "запрос";
 	if (normalized === "confirmed") return "подтверждено";
-	if (normalized === "split") return role === "executor" ? "частично занято" : "свободно";
+	if (normalized === "split") {
+		if (role === "executor") return "частично занято";
+		return slot?.isOwned ? "подтверждено" : "свободно";
+	}
 	return "занято";
 }
 
@@ -423,8 +426,8 @@ function historyEntryText(entry) {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
 		return `${time} — клиент: ${entry.comment || ""}`;
 	}
-	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "")}`;
-	return `${time} — клиент: ${getStatusLabel(entry.toStatus || "")}`;
+	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "", role === "customer" ? { isOwned: true } : null)}`;
+	return `${time} — клиент: ${getStatusLabel(entry.toStatus || "", role === "customer" ? { isOwned: true } : null)}`;
 }
 
 function hasStatusDraftChange(slot) {
@@ -561,7 +564,7 @@ function renderCalendar() {
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
-								<span class="slot-label">${getStatusLabel(draftStatus)}</span>
+								<span class="slot-label">${getStatusLabel(draftStatus, slot)}</span>
 							</button>
 							${confirmBtnHtml}
 						</div>

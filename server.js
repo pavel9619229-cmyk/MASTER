@@ -347,6 +347,7 @@ function sanitizeSlotForCustomer(slot, customerId) {
 		datePart: slot.datePart,
 		timePart: slot.timePart,
 		kind: slot.kind,
+		isOwned: belongs,
 		status: mapCustomerStatus(slot, belongs),
 		updatedAt: slot.updatedAt,
 		customerComment: belongs ? slot.customerComment || "" : "",
