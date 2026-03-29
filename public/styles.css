@@ -1113,6 +1113,51 @@ h1 {
 		padding: 16px;
 	}
 
+	.slot-cell {
+		width: 100%;
+		align-items: stretch;
+		gap: 6px;
+	}
+
+	.slot {
+		min-width: 92px;
+		min-height: 34px;
+		padding: 5px 8px;
+		border-radius: 16px;
+	}
+
+	.slot-label {
+		font-size: 11px;
+		line-height: 1.2;
+		white-space: normal;
+	}
+
+	.slot-row {
+		flex-wrap: wrap;
+		gap: 4px;
+		align-items: stretch;
+	}
+
+	.slot-confirm-btn {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.slot-comment-form {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 6px;
+	}
+
+	.slot-comment-input {
+		font-size: 12px;
+		padding: 6px 8px;
+	}
+
+	.slot-comment-send-btn {
+		width: 100%;
+	}
+
 	.panel-side {
 		gap: 12px;
 	}
@@ -1185,6 +1230,16 @@ h1 {
 @media (max-width: 560px) {
 	body {
 		font-size: 15px;
+	}
+
+	.slot {
+		min-width: 76px;
+		min-height: 30px;
+		padding: 4px 6px;
+	}
+
+	.slot-label {
+		font-size: 10px;
 	}
 
 	.layout {
