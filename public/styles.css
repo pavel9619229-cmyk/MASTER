@@ -989,6 +989,10 @@ h1 {
 		padding: 16px;
 	}
 
+	.panel-side {
+		gap: 12px;
+	}
+
 	.toolbar {
 		flex-direction: column;
 		align-items: stretch;
@@ -1028,6 +1032,32 @@ h1 {
 
 	.settings-form {
 		gap: 12px;
+	}
+
+	.workdays-fieldset {
+		padding: 10px;
+	}
+
+	.workdays-group {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 8px;
+	}
+
+	.day-label span {
+		display: block;
+		text-align: center;
+	}
+
+	.work-hours-group {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		align-items: end;
+	}
+
+	.work-hours-group button {
+		grid-column: 1 / -1;
 	}
 
 	.settings-form input,
@@ -1088,6 +1118,14 @@ h1 {
 
 	.master-page .layout {
 		margin-top: var(--master-topbar-offset, 216px);
+	}
+
+	.workdays-group {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.work-hours-group {
+		grid-template-columns: 1fr;
 	}
 
 	.master-page .master-topbar {
