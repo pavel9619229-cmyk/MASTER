@@ -451,11 +451,10 @@ function renderCalendar() {
 		return `<tr><td class="time-label">${time}</td>${cells}</tr>`;
 	}).join("");
 
+	calendarWrapper.innerHTML = `<table class="calendar">${thead}<tbody>${rows}</tbody></table>`;
 	if (role === "executor" && ensureCalendarTopbarHeader()) {
-		calendarWrapper.innerHTML = `<table class="calendar"><tbody>${rows}</tbody></table>`;
 		renderMasterTopbarHeader(thead);
 	} else {
-		calendarWrapper.innerHTML = `<table class="calendar">${thead}<tbody>${rows}</tbody></table>`;
 		clearMasterTopbarHeader();
 	}
 
