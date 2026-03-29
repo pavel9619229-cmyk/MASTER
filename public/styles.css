@@ -163,6 +163,56 @@ h1 {
 	min-width: 890px;
 }
 
+.calendar.calendar--day {
+	min-width: 0;
+	width: 100%;
+}
+
+.calendar.calendar--day td,
+.calendar.calendar--day th {
+	word-break: break-word;
+}
+
+.calendar.calendar--day .time-label {
+	width: 62px;
+	min-width: 62px;
+	font-size: 12px;
+	padding: 6px 4px;
+}
+
+.calendar.calendar--day .slot {
+	width: 100%;
+	min-width: 0;
+	border-radius: 12px;
+	justify-content: center;
+}
+
+.calendar.calendar--day .slot-cell {
+	width: 100%;
+	padding-right: 0;
+	padding-top: 18px;
+}
+
+.calendar.calendar--day .slot-row {
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.calendar.calendar--day .slot-confirm-btn {
+	width: 100%;
+	justify-content: center;
+}
+
+.calendar.calendar--day .slot-comment-form {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+}
+
+.calendar.calendar--day .slot-comment-send-btn {
+	width: 100%;
+}
+
 .calendar th,
 .calendar td {
 	border: 1px solid var(--border);

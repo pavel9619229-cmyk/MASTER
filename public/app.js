@@ -578,7 +578,8 @@ function renderCalendar() {
 		return `<tr><td class="time-label">${time}</td>${cells}</tr>`;
 	}).join("");
 
-	calendarWrapper.innerHTML = `<table class="calendar">${thead}<tbody>${rows}</tbody></table>`;
+	const dayViewClass = currentView === "day" ? " calendar--day" : "";
+	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${thead}<tbody>${rows}</tbody></table>`;
 	if (role === "executor" && ensureCalendarTopbarHeader()) {
 		renderMasterTopbarHeader(thead);
 	} else {
