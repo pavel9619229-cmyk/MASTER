@@ -642,7 +642,7 @@ if (saveWorkHoursBtn) {
 			startHour,
 			endHour,
 		});
-		setHint("Рабочие часы сохранены.");
+		setHint("Рабочее время сохранено.");
 	});
 }
 
