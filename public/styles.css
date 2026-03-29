@@ -185,15 +185,6 @@ h1 {
 .calendar th {
 	background: #f9fbfa;
 	font-size: 13px;
-	position: sticky;
-	top: 0;
-	z-index: 20;
-}
-
-.calendar th:first-child {
-	left: 0;
-	z-index: 30;
-	box-shadow: 1px 0 0 0 var(--border);
 }
 
 .time-label {
@@ -201,10 +192,6 @@ h1 {
 	font-weight: 700;
 	color: var(--muted);
 	background: #fbfdfb;
-	position: sticky;
-	left: 0;
-	z-index: 10;
-	box-shadow: 1px 0 0 0 var(--border);
 }
 
 .slot {
