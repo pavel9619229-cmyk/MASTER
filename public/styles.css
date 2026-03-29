@@ -1122,14 +1122,24 @@ h1 {
 		width: 100%;
 		align-items: stretch;
 		gap: 6px;
-		padding-right: 20px;
+		padding-right: 0;
+		padding-top: 18px;
+	}
+
+	.slot-hide-btn {
+		top: 0;
+		right: 0;
+		width: 20px;
+		height: 20px;
 	}
 
 	.slot {
-		min-width: 92px;
+		width: 100%;
+		min-width: 0;
 		min-height: 34px;
 		padding: 5px 8px;
 		border-radius: 16px;
+		justify-content: center;
 	}
 
 	.slot-label {
@@ -1139,6 +1149,7 @@ h1 {
 	}
 
 	.slot-row {
+		flex-direction: column;
 		flex-wrap: wrap;
 		gap: 4px;
 		align-items: stretch;
@@ -1236,6 +1247,15 @@ h1 {
 @media (max-width: 560px) {
 	body {
 		font-size: 15px;
+	}
+
+	.slot-cell {
+		padding-top: 16px;
+	}
+
+	.slot-hide-btn {
+		width: 18px;
+		height: 18px;
 	}
 
 	.slot {
