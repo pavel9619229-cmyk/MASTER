@@ -848,8 +848,11 @@ h1 {
 }
 
 .master-page .panel-main {
-	backdrop-filter: none;
-	padding-top: 232px;
+	padding-top: 0;
+}
+
+.master-page .layout {
+	margin-top: 210px;
 }
 
 .master-page .master-topbar {
@@ -928,8 +931,8 @@ h1 {
 		min-width: 170px;
 	}
 
-	.master-page .panel-main {
-		padding-top: 244px;
+	.master-page .layout {
+		margin-top: 220px;
 	}
 
 	.master-page .master-topbar {
@@ -996,11 +999,7 @@ h1 {
 	}
 
 	.master-page .layout {
-		padding-top: 10px;
-	}
-
-	.master-page .panel-main {
-		padding-top: 248px;
+		margin-top: 236px;
 	}
 
 	.master-page .master-topbar {
@@ -1042,8 +1041,8 @@ h1 {
 		min-width: 640px;
 	}
 
-	.master-page .panel-main {
-		padding-top: 272px;
+	.master-page .layout {
+		margin-top: 216px;
 	}
 
 	.master-page .master-topbar {
