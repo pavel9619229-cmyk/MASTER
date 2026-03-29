@@ -864,6 +864,21 @@ h1 {
 	margin-top: 210px;
 }
 
+@media (min-width: 981px) {
+	.master-page .layout {
+		grid-template-columns: 1fr;
+		gap: 14px;
+	}
+
+	.master-page .panel-main {
+		order: 1;
+	}
+
+	.master-page .panel-side {
+		order: 2;
+	}
+}
+
 .master-page .master-topbar {
 	position: fixed;
 	top: calc(10px + env(safe-area-inset-top));
