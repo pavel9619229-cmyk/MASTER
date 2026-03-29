@@ -530,6 +530,12 @@ function renderCalendar() {
 				const hideBtnHtml = canHideUntouched
 					? `<button type="button" class="slot-hide-btn" data-delete-slot="${slot.id}" title="Сделать слот нерабочим">×</button>`
 					: "";
+				const canAddExtra = role === "executor" && !past && slot.kind === "primary"
+					&& normalizeStatus(slot.status) === "confirmed"
+					&& !slotsInCell.some((s) => s.kind === "extra");
+				const addExtraBtnHtml = canAddExtra
+					? `<button type="button" class="slot-add-extra-btn" data-add-extra-slot="${slot.id}" title="Добавить свободный слот на это время">+</button>`
+					: "";
 				const confirmBtnHtml = !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
@@ -552,7 +558,7 @@ function renderCalendar() {
 
 				return `
 					<div class="slot-cell ${past ? "past-slot" : ""}">
-						${hideBtnHtml}
+						${hideBtnHtml}${addExtraBtnHtml}
 						<div class="slot-row">
 							<button
 								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
@@ -613,6 +619,23 @@ function renderCalendar() {
 
 		btn.addEventListener("click", (e) => {
 			handleDeleteClick(e);
+		});
+	});
+
+	calendarWrapper.querySelectorAll("[data-add-extra-slot]").forEach((btn) => {
+		btn.addEventListener("pointerdown", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+		});
+		btn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (role !== "executor") return;
+			const slotId = btn.getAttribute("data-add-extra-slot");
+			if (!slotId) return;
+			socket.emit("executor:addExtraSlot", { slotId });
+			setHint("Свободный слот добавлен.");
 		});
 	});
 

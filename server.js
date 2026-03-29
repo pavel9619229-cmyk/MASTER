@@ -566,6 +566,26 @@ io.on("connection", (socket) => {
 		emitState();
 	});
 
+	socket.on("executor:addExtraSlot", ({ slotId }) => {
+		if (!isMaster()) return;
+		const slot = state.slots[slotId];
+		if (!slot) return;
+		if (isPastSlot(slot)) {
+			socket.emit("error:message", "Нельзя добавить слот в прошлом.");
+			return;
+		}
+		if (slot.kind !== "primary") {
+			socket.emit("error:message", "Дополнительный слот можно добавить только к основному.");
+			return;
+		}
+		if (slot.status !== "confirmed") {
+			socket.emit("error:message", "Дополнительный слот можно добавить только к подтверждённому.");
+			return;
+		}
+		ensureExtraSlot(slot);
+		emitState();
+	});
+
 	socket.on("executor:setComment", ({ slotId, comment }) => {
 		if (!isMaster()) return;
 		const slot = state.slots[slotId];
