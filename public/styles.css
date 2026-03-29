@@ -568,6 +568,66 @@ h1 {
 	font-weight: 600;
 }
 
+.master-page .panel-side.settings-compact .settings-form {
+	gap: 12px;
+}
+
+.master-page .panel-side.settings-compact .workdays-fieldset {
+	padding: 10px;
+}
+
+.master-page .panel-side.settings-compact .workdays-group {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.master-page .panel-side.settings-compact .day-label {
+	display: block;
+	width: 100%;
+}
+
+.master-page .panel-side.settings-compact .day-label span,
+.master-page .panel-side.settings-compact .day-label input[type="checkbox"]:checked + span {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	text-align: center;
+	padding: 8px 6px;
+	font-size: 14px;
+}
+
+.master-page .panel-side.settings-compact .work-hours-group {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	align-items: end;
+}
+
+.master-page .panel-side.settings-compact .work-hours-group label {
+	min-width: 0;
+}
+
+.master-page .panel-side.settings-compact .work-hours-group input {
+	width: 100%;
+	min-width: 0;
+	height: 40px;
+}
+
+.master-page .panel-side.settings-compact .work-hours-group button {
+	grid-column: 1 / -1;
+	width: 100%;
+	height: 42px;
+}
+
+.master-page .panel-side.settings-compact-xs .workdays-group {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.master-page .panel-side.settings-compact-xs .work-hours-group {
+	grid-template-columns: 1fr;
+}
+
 .week-nav {
 	display: flex;
 	align-items: center;

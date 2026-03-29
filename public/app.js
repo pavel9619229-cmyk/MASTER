@@ -21,6 +21,7 @@ const saveWorkHoursBtn = document.getElementById("save-work-hours");
 const masterTopbar = document.querySelector(".master-page .master-topbar");
 const settingsSection = document.getElementById("settings-section");
 const masterSettingsBtn = document.getElementById("master-settings-btn");
+const settingsPanel = document.querySelector(".master-page .panel-side");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -55,6 +56,13 @@ function updateMasterLayoutOffset() {
 	const extraGap = 14;
 	const offset = Math.ceil(masterTopbar.getBoundingClientRect().height + top + extraGap);
 	document.documentElement.style.setProperty("--master-topbar-offset", `${offset}px`);
+}
+
+function updateSettingsCompactMode() {
+	if (!settingsPanel) return;
+	const panelWidth = settingsPanel.getBoundingClientRect().width;
+	settingsPanel.classList.toggle("settings-compact", panelWidth > 0 && panelWidth <= 760);
+	settingsPanel.classList.toggle("settings-compact-xs", panelWidth > 0 && panelWidth <= 420);
 }
 
 function clearMasterTopbarHeader() {
@@ -100,6 +108,7 @@ function ensureMasterTopbarBindings() {
 	window.addEventListener("resize", () => {
 		syncMasterTopbarHeader();
 		updateMasterLayoutOffset();
+		updateSettingsCompactMode();
 	});
 	masterTopbarBindingsAdded = true;
 }
@@ -761,6 +770,7 @@ socket.on("state", (nextState) => {
 	updateViewUI();
 	renderWeekControls();
 	renderView();
+	updateSettingsCompactMode();
 });
 
 socket.on("error:message", (message) => {
@@ -822,6 +832,7 @@ if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 }
 
 updateMasterLayoutOffset();
+updateSettingsCompactMode();
 
 setHint(role === "executor"
 	? "Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты."
