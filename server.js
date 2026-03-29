@@ -327,8 +327,10 @@ initDefaultWeeks();
 
 function mapCustomerStatus(slot, belongsToCustomer) {
 	if (belongsToCustomer) {
+		if (slot.status === "split") return "confirmed";
 		return slot.status;
 	}
+	if (slot.status === "split") return "free";
 	if (slot.status === "free") return "free";
 	return "busy";
 }
