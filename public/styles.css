@@ -592,6 +592,24 @@ h1 {
 	margin: 0;
 }
 
+@media (min-width: 981px) {
+	.settings-form .master-data-fieldset {
+		order: 1;
+	}
+
+	.settings-form .work-days-fieldset {
+		order: 2;
+	}
+
+	.settings-form .work-hours-fieldset {
+		order: 3;
+	}
+
+	.settings-form > .btn.primary[type="submit"] {
+		order: 4;
+	}
+}
+
 .workdays-group {
 	display: flex;
 	flex-wrap: wrap;
