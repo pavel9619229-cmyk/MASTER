@@ -352,11 +352,7 @@ function getStatusLabel(status) {
 function getSlotLabel(slot, status) {
 	const normalized = normalizeStatus(status);
 	if (normalized === "requested" && role === "executor" && slot.customerName && slot.customerPhone) {
-		console.log("getSlotLabel: Showing customer info for requested slot:", { customerName: slot.customerName, customerPhone: slot.customerPhone });
 		return `запрос от "${slot.customerName}" ${slot.customerPhone}`;
-	}
-	if (normalized === "requested" && role === "executor") {
-		console.log("getSlotLabel: Requested slot but missing customer info:", { customerName: slot.customerName, customerPhone: slot.customerPhone, hasName: !!slot.customerName, hasPhone: !!slot.customerPhone });
 	}
 	return getStatusLabel(status);
 }
@@ -482,7 +478,6 @@ function historyEntryText(entry) {
 	if (entry.kind === "comment") {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
 		const hasCustomerInfo = role === "executor" && entry.customerName && entry.customerPhone;
-		console.log("Comment entry debug:", { role, customerName: entry.customerName, customerPhone: entry.customerPhone, hasCustomerInfo });
 		if (hasCustomerInfo) {
 			return `${time} — клиент "${entry.customerName}" ${entry.customerPhone}: ${entry.comment || ""}`;
 		}
