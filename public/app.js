@@ -19,6 +19,8 @@ const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
 const saveWorkHoursBtn = document.getElementById("save-work-hours");
 const masterTopbar = document.querySelector(".master-page .master-topbar");
+const settingsSection = document.getElementById("settings-section");
+const masterSettingsBtn = document.getElementById("master-settings-btn");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -115,6 +117,16 @@ function renderMasterTopbarHeader(theadHtml) {
 
 function setHint(text) {
 	if (hint) hint.textContent = text;
+}
+
+function scrollToMasterSettings() {
+	if (!settingsSection) return;
+	const topbarHeight = masterTopbar ? masterTopbar.getBoundingClientRect().height : 0;
+	const targetTop = window.scrollY + settingsSection.getBoundingClientRect().top - topbarHeight - 12;
+	window.scrollTo({
+		top: Math.max(0, targetTop),
+		behavior: "smooth",
+	});
 }
 
 function pad(num) {
@@ -731,6 +743,12 @@ if (saveWorkHoursBtn) {
 			endHour,
 		});
 		setHint("Рабочее время сохранено.");
+	});
+}
+
+if (masterSettingsBtn) {
+	masterSettingsBtn.addEventListener("click", () => {
+		scrollToMasterSettings();
 	});
 }
 
