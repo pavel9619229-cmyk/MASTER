@@ -349,6 +349,14 @@ function getStatusLabel(status) {
 	return "занято";
 }
 
+function getSlotLabel(slot, status) {
+	const normalized = normalizeStatus(status);
+	if (normalized === "requested" && role === "executor" && slot.customerName && slot.customerPhone) {
+		return `запрос от "${slot.customerName}" ${slot.customerPhone}`;
+	}
+	return getStatusLabel(status);
+}
+
 function canClickSlot(slot) {
 	const normalized = normalizeStatus(slot.status);
 	if (isPastSlot(slot)) return false;
@@ -619,7 +627,7 @@ function renderCalendar() {
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
-								<span class="slot-label">${getStatusLabel(draftStatus)}</span>
+								<span class="slot-label">${getSlotLabel(slot, draftStatus)}</span>
 							</button>
 							${confirmBtnHtml}
 						</div>
