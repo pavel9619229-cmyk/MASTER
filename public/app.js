@@ -70,17 +70,22 @@ function syncMasterTopbarHeader() {
 	const bodyTable = calendarWrapper ? calendarWrapper.querySelector("table.calendar") : null;
 	const topTable = calendarTopbarHeader.querySelector("table.calendar-topbar-table");
 	if (!bodyTable || !topTable) return;
+	const bodyHeaderCells = Array.from(bodyTable.querySelectorAll("thead th"));
+	if (bodyHeaderCells.length === 0) return;
 
-	const sourceRow = bodyTable.querySelector("tbody tr");
-	const sourceCells = sourceRow ? Array.from(sourceRow.children) : [];
+	const wrapperRect = calendarWrapper.getBoundingClientRect();
+	const topbarRect = masterTopbar ? masterTopbar.getBoundingClientRect() : null;
+	if (topbarRect) {
+		calendarTopbarHeader.style.marginLeft = `${Math.round(wrapperRect.left - topbarRect.left)}px`;
+		calendarTopbarHeader.style.width = `${Math.round(wrapperRect.width)}px`;
+	}
 	const headerCells = Array.from(topTable.querySelectorAll("th"));
-	if (sourceCells.length === headerCells.length && sourceCells.length > 0) {
+	if (bodyHeaderCells.length === headerCells.length) {
 		headerCells.forEach((cell, i) => {
-			cell.style.width = `${Math.ceil(sourceCells[i].getBoundingClientRect().width)}px`;
+			cell.style.width = `${Math.ceil(bodyHeaderCells[i].getBoundingClientRect().width)}px`;
 		});
 	}
-
-	topTable.style.width = `${Math.ceil(bodyTable.scrollWidth)}px`;
+	topTable.style.width = `${Math.ceil(bodyTable.getBoundingClientRect().width)}px`;
 	topTable.style.transform = `translateX(${-calendarWrapper.scrollLeft}px)`;
 	updateMasterLayoutOffset();
 }
