@@ -545,7 +545,9 @@ function renderCalendar() {
 		renderMasterTopbarHeader(thead);
 	} else {
 		clearMasterTopbarHeader();
-	}	console.log("renderCalendar done, scheduling autoScroll", { currentView, hasAutoScrolled: hasAutoScrolledToCurrentSlot });	scheduleAutoScrollToCurrentSlot();
+	}
+	console.log("renderCalendar done, scheduling autoScroll", { currentView, hasAutoScrolled: hasAutoScrolledToCurrentSlot });
+	setTimeout(autoScrollToCurrentSlotRow, 0);
 
 	calendarWrapper.querySelectorAll("[data-slot-id]").forEach((el) => {
 		el.addEventListener("click", () => {
