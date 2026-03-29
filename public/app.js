@@ -477,7 +477,7 @@ function historyEntryText(entry) {
 	const time = entry?.at ? `${pad(new Date(entry.at).getHours())}:${pad(new Date(entry.at).getMinutes())}` : "";
 	if (entry.kind === "comment") {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
-		if (role === "executor" && entry.customerName && entry.customerPhone) {
+		if (role === "executor" && String(entry.customerName || "").length > 0 && String(entry.customerPhone || "").length > 0) {
 			return `${time} — клиент "${entry.customerName}" ${entry.customerPhone}: ${entry.comment || ""}`;
 		}
 		return `${time} — клиент: ${entry.comment || ""}`;
