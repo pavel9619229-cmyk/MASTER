@@ -592,24 +592,6 @@ h1 {
 	margin: 0;
 }
 
-@media (min-width: 981px) {
-	.settings-form .master-data-fieldset {
-		order: 1;
-	}
-
-	.settings-form .work-days-fieldset {
-		order: 2;
-	}
-
-	.settings-form .work-hours-fieldset {
-		order: 3;
-	}
-
-	.settings-form > .btn.primary[type="submit"] {
-		order: 4;
-	}
-}
-
 .workdays-group {
 	display: flex;
 	flex-wrap: wrap;
@@ -869,6 +851,15 @@ h1 {
 	padding-top: 0;
 }
 
+.master-page .master-hours-footer {
+	grid-column: 1 / -1;
+}
+
+.master-page .master-hours-footer .work-hours-group {
+	margin-top: 0;
+	align-items: flex-end;
+}
+
 .master-page .layout {
 	margin-top: 210px;
 }
@@ -1029,6 +1020,11 @@ h1 {
 		width: 100%;
 		padding-left: 10px;
 		padding-right: 10px;
+	}
+
+	.master-page .master-hours-footer .work-hours-group {
+		margin-top: 8px;
+		align-items: stretch;
 	}
 }
 

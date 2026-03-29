@@ -65,20 +65,6 @@
 								<input id="master-phone" name="masterPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
 							</label>
 						</fieldset>
-						<fieldset class="workdays-fieldset work-hours-fieldset">
-							<legend>Рабочие часы</legend>
-							<div class="work-hours-group">
-								<label>
-									С
-									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
-								</label>
-								<label>
-									До
-									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
-								</label>
-							</div>
-							<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
-						</fieldset>
 						<fieldset class="workdays-fieldset work-days-fieldset">
 							<legend>Рабочие дни</legend>
 							<div class="workdays-group">
@@ -97,6 +83,23 @@
 
 				<p id="hint" class="hint"></p>
 			</aside>
+
+			<section class="panel master-hours-footer">
+				<fieldset class="workdays-fieldset">
+					<legend>Рабочие часы</legend>
+					<div class="work-hours-group">
+						<label>
+							С
+							<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
+						</label>
+						<label>
+							До
+							<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
+						</label>
+						<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
+					</div>
+				</fieldset>
+			</section>
 		</main>
 
 		<script src="/socket.io/socket.io.js"></script>
