@@ -374,10 +374,58 @@ function nextCustomerStatus(currentStatus) {
 
 function normalizeCustomerPhoneInput(value) {
 	const digitsOnly = String(value || "").replace(/\D/g, "");
-	if (digitsOnly.startsWith("7") || digitsOnly.startsWith("8")) {
-		return `${PHONE_PREFIX}${digitsOnly.slice(1)}`;
+	const localDigits = digitsOnly.startsWith("7") || digitsOnly.startsWith("8")
+		? digitsOnly.slice(1)
+		: digitsOnly;
+	return `${PHONE_PREFIX}${localDigits.slice(0, 10)}`;
+}
+
+function normalizeCustomerNameInput(value) {
+	return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function isValidCustomerName(value) {
+	const name = normalizeCustomerNameInput(value);
+	if (name.length < 2 || name.length > 60) return false;
+	if (/\d/.test(name)) return false;
+	if (!/^[A-Za-zА-Яа-яЁё\s'\-]+$/.test(name)) return false;
+	return /[A-Za-zА-Яа-яЁё]{2,}/.test(name);
+}
+
+function isValidRussianMobile(value) {
+	return /^\+79\d{9}$/.test(String(value || "").trim());
+}
+
+function customerIdentityReady() {
+	if (role !== "customer") return true;
+	const nameValue = customerNameInput ? customerNameInput.value : "";
+	const phoneValue = customerPhoneInput ? customerPhoneInput.value : "";
+	return isValidCustomerName(nameValue) && isValidRussianMobile(phoneValue);
+}
+
+function renderCustomerIdentityGate() {
+	if (!calendarWrapper) return;
+	calendarWrapper.innerHTML = "<p>Чтобы увидеть расписание, укажите корректные имя и номер телефона.</p>";
+	setHint("Введите имя (только буквы) и телефон в формате +79XXXXXXXXX.");
+}
+
+function syncCustomerIdentityGate() {
+	if (role !== "customer") return;
+	if (!customerIdentityReady()) {
+		renderCustomerIdentityGate();
+		if (weekPrevBtn) weekPrevBtn.disabled = true;
+		if (weekNextBtn) weekNextBtn.disabled = true;
+		if (monthPrevBtn) monthPrevBtn.disabled = true;
+		if (monthNextBtn) monthNextBtn.disabled = true;
+		return;
 	}
-	return `${PHONE_PREFIX}${digitsOnly}`;
+	if (weekPrevBtn) weekPrevBtn.disabled = false;
+	if (weekNextBtn) weekNextBtn.disabled = false;
+	if (monthPrevBtn) monthPrevBtn.disabled = false;
+	if (monthNextBtn) monthNextBtn.disabled = false;
+	renderWeekControls();
+	renderView();
+	setHint("Клиент: доступны только следующие 4 недели.");
 }
 
 function handleSlotClick(slot) {
@@ -451,6 +499,10 @@ function hasCommentDraftChange(slot, commentBy) {
 }
 
 function renderCalendar() {
+	if (role === "customer" && !customerIdentityReady()) {
+		renderCustomerIdentityGate();
+		return;
+	}
 	const todayStart = startOfDay(currentNow());
 	let days = currentView === "day"
 		? [startOfDay(currentDay)]
@@ -645,12 +697,16 @@ function renderCalendar() {
 			const slotId = btn.getAttribute("data-confirm-slot");
 			if (!slotId || !appState.slots[slotId]) return;
 			if (role === "customer") {
+				if (!customerIdentityReady()) {
+					renderCustomerIdentityGate();
+					return;
+				}
 				const selectedStatus = customerDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId].status);
 				socket.emit("customer:confirmSlot", {
 					slotId,
 					selectedStatus,
-					customerName: customerNameInput ? customerNameInput.value.trim() : "",
-					customerPhone: customerPhoneInput ? customerPhoneInput.value.trim() : "",
+					customerName: normalizeCustomerNameInput(customerNameInput ? customerNameInput.value : ""),
+					customerPhone: normalizeCustomerPhoneInput(customerPhoneInput ? customerPhoneInput.value : ""),
 				});
 				setHint("Запрос отправлен.");
 				return;
@@ -754,6 +810,10 @@ function updateViewUI() {
 }
 
 function renderView() {
+	if (role === "customer" && !customerIdentityReady()) {
+		renderCustomerIdentityGate();
+		return;
+	}
 	if (currentView === "month") {
 		renderMonthView();
 	} else {
@@ -762,6 +822,10 @@ function renderView() {
 }
 
 function renderMonthView() {
+	if (role === "customer" && !customerIdentityReady()) {
+		renderCustomerIdentityGate();
+		return;
+	}
 	clearMasterTopbarHeader();
 	const monthStart = currentMonthStart;
 	const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
@@ -865,6 +929,14 @@ if (customerPhoneInput) {
 	});
 	customerPhoneInput.addEventListener("input", () => {
 		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
+		syncCustomerIdentityGate();
+	});
+}
+
+if (customerNameInput) {
+	customerNameInput.addEventListener("input", () => {
+		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
+		syncCustomerIdentityGate();
 	});
 }
 
@@ -908,8 +980,12 @@ socket.on("state", (nextState) => {
 	customerDraftComments = {};
 	restoreViewState();
 	updateViewUI();
-	renderWeekControls();
-	renderView();
+	if (role === "customer" && !customerIdentityReady()) {
+		renderCustomerIdentityGate();
+	} else {
+		renderWeekControls();
+		renderView();
+	}
 	updateSettingsCompactMode();
 });
 
@@ -978,7 +1054,10 @@ if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 
 updateMasterLayoutOffset();
 updateSettingsCompactMode();
+syncCustomerIdentityGate();
 
-setHint(role === "executor"
-	? "Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты."
-	: "Клиент: доступны только следующие 4 недели.");
+if (role === "executor") {
+	setHint("Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты.");
+} else if (customerIdentityReady()) {
+	setHint("Клиент: доступны только следующие 4 недели.");
+}

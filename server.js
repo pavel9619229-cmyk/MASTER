@@ -231,6 +231,30 @@ function normalizeStatus(status) {
 	return status === "busy" ? "rejected" : status;
 }
 
+function normalizeCustomerNameInput(value) {
+	return String(value || "").replace(/\s+/g, " ").trim().slice(0, 60);
+}
+
+function isValidCustomerName(value) {
+	const name = normalizeCustomerNameInput(value);
+	if (name.length < 2 || name.length > 60) return false;
+	if (/\d/.test(name)) return false;
+	if (!/^[A-Za-zА-Яа-яЁё\s'\-]+$/.test(name)) return false;
+	return /[A-Za-zА-Яа-яЁё]{2,}/.test(name);
+}
+
+function normalizeRussianMobile(value) {
+	const digitsOnly = String(value || "").replace(/\D/g, "");
+	const localDigits = digitsOnly.startsWith("7") || digitsOnly.startsWith("8")
+		? digitsOnly.slice(1)
+		: digitsOnly;
+	return `+7${localDigits.slice(0, 10)}`;
+}
+
+function isValidRussianMobile(value) {
+	return /^\+79\d{9}$/.test(String(value || "").trim());
+}
+
 function createSlot({ id, datePart, timePart, kind = "primary", linkedPrimaryId = "" }) {
 	return {
 		id,
@@ -501,10 +525,20 @@ io.on("connection", (socket) => {
 		}
 
 		if (normalizedSelected === "requested") {
+			const safeName = normalizeCustomerNameInput(customerName);
+			const safePhone = normalizeRussianMobile(customerPhone);
+			if (!isValidCustomerName(safeName)) {
+				socket.emit("error:message", "Укажите корректное имя (только буквы).");
+				return;
+			}
+			if (!isValidRussianMobile(safePhone)) {
+				socket.emit("error:message", "Укажите корректный российский номер в формате +79XXXXXXXXX.");
+				return;
+			}
 			slot.status = "requested";
 			slot.customerId = customerId;
-			slot.customerName = String(customerName || "").trim().slice(0, 60);
-			slot.customerPhone = String(customerPhone || "").trim().slice(0, 40);
+			slot.customerName = safeName;
+			slot.customerPhone = safePhone;
 		} else {
 			if (!ownedByCurrentCustomer) {
 				socket.emit("error:message", "Нельзя отменить чужую запись.");
