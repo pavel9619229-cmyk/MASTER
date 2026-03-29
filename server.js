@@ -252,7 +252,9 @@ function normalizeRussianMobile(value) {
 }
 
 function isValidRussianMobile(value) {
-	return /^\+79\d{9}$/.test(String(value || "").trim());
+	const phone = String(value || "").trim();
+	if (!/^\+79\d{9}$/.test(phone)) return false;
+	return !phone.includes("12345");
 }
 
 function createSlot({ id, datePart, timePart, kind = "primary", linkedPrimaryId = "" }) {
