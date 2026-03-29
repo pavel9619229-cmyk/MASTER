@@ -997,13 +997,20 @@ h1 {
 
 	.master-page .workdays-group {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 8px;
+	}
+
+	.master-page .day-label {
+		width: 100%;
 	}
 
 	.master-page .day-label span {
 		display: block;
 		text-align: center;
+		width: 100%;
+		padding: 8px 6px;
+		font-size: 14px;
 	}
 
 	.master-page .work-hours-group {
@@ -1013,13 +1020,20 @@ h1 {
 		align-items: end;
 	}
 
+	.master-page .work-hours-group label {
+		min-width: 0;
+	}
+
 	.master-page .work-hours-group input {
 		width: 100%;
 		min-width: 0;
+		height: 40px;
 	}
 
 	.master-page .work-hours-group button {
 		grid-column: 1 / -1;
+		width: 100%;
+		height: 42px;
 	}
 }
 
@@ -1135,7 +1149,7 @@ h1 {
 	}
 
 	.workdays-group {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.work-hours-group {
