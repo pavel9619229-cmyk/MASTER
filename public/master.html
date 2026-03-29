@@ -77,29 +77,26 @@
 								<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
 							</div>
 						</fieldset>
+						<fieldset class="workdays-fieldset">
+							<legend>Рабочее время</legend>
+							<div class="work-hours-group">
+								<label>
+									С
+									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
+								</label>
+								<label>
+									До
+									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
+								</label>
+								<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
+							</div>
+						</fieldset>
 						<button type="submit" class="btn primary">Сохранить</button>
 					</form>
 				</section>
 
 				<p id="hint" class="hint"></p>
 			</aside>
-
-			<section class="panel master-hours-footer">
-				<fieldset class="workdays-fieldset">
-					<legend>Рабочее время</legend>
-					<div class="work-hours-group">
-						<label>
-							С
-							<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
-						</label>
-						<label>
-							До
-							<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
-						</label>
-						<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
-					</div>
-				</fieldset>
-			</section>
 		</main>
 
 		<script src="/socket.io/socket.io.js"></script>

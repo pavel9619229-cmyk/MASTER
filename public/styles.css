@@ -851,16 +851,6 @@ h1 {
 	padding-top: 0;
 }
 
-.master-page .master-hours-footer {
-	grid-column: 1 / -1;
-	order: 3;
-}
-
-.master-page .master-hours-footer .work-hours-group {
-	margin-top: 0;
-	align-items: flex-end;
-}
-
 .master-page .layout {
 	margin-top: var(--master-topbar-offset, 210px);
 }
@@ -1062,10 +1052,6 @@ h1 {
 		padding-right: 10px;
 	}
 
-	.master-page .master-hours-footer .work-hours-group {
-		margin-top: 8px;
-		align-items: stretch;
-	}
 }
 
 @media (max-width: 560px) {
