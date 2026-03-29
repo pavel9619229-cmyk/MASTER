@@ -492,14 +492,25 @@ function renderCalendar() {
 	});
 
 	calendarWrapper.querySelectorAll("[data-delete-slot]").forEach((btn) => {
-		btn.addEventListener("click", (e) => {
+		const handleDeleteClick = (e) => {
 			e.preventDefault();
 			e.stopPropagation();
+			if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
 			if (role !== "executor") return;
 			const slotId = btn.getAttribute("data-delete-slot");
 			if (!slotId || !appState.slots[slotId]) return;
 			socket.emit("executor:hideUntouchedSlot", { slotId });
 			setHint("Слот скрыт. Чтобы вернуть его, выключите и снова включите рабочий день.");
+		};
+
+		btn.addEventListener("pointerdown", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+		});
+
+		btn.addEventListener("click", (e) => {
+			handleDeleteClick(e);
 		});
 	});
 
