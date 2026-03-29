@@ -981,6 +981,46 @@ h1 {
 		padding-left: 24px;
 		padding-right: 24px;
 	}
+
+	.master-page .panel-side {
+		width: 100%;
+		gap: 12px;
+	}
+
+	.master-page .settings-form {
+		gap: 12px;
+	}
+
+	.master-page .workdays-fieldset {
+		padding: 10px;
+	}
+
+	.master-page .workdays-group {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 8px;
+	}
+
+	.master-page .day-label span {
+		display: block;
+		text-align: center;
+	}
+
+	.master-page .work-hours-group {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px;
+		align-items: end;
+	}
+
+	.master-page .work-hours-group input {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.master-page .work-hours-group button {
+		grid-column: 1 / -1;
+	}
 }
 
 @media (max-width: 760px) {
@@ -1032,32 +1072,6 @@ h1 {
 
 	.settings-form {
 		gap: 12px;
-	}
-
-	.workdays-fieldset {
-		padding: 10px;
-	}
-
-	.workdays-group {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 8px;
-	}
-
-	.day-label span {
-		display: block;
-		text-align: center;
-	}
-
-	.work-hours-group {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 8px;
-		align-items: end;
-	}
-
-	.work-hours-group button {
-		grid-column: 1 / -1;
 	}
 
 	.settings-form input,
