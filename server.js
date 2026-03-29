@@ -352,7 +352,7 @@ function sanitizeSlotForCustomer(slot, customerId) {
 		updatedAt: slot.updatedAt,
 		customerComment: belongs ? slot.customerComment || "" : "",
 		comment: belongs ? slot.comment || "" : "",
-		history: belongs ? (slot.history || []) : [],
+		history: belongs ? (slot.history || []).map((h) => (h && h.toStatus === "split" ? { ...h, toStatus: "confirmed" } : h)) : [],
 	};
 }
 
