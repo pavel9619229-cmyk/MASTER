@@ -473,18 +473,19 @@ function getTimesFromSettings() {
 	return out;
 }
 
-function historyEntryText(entry) {
+function historyEntryText(entry, slot) {
 	const time = entry?.at ? `${pad(new Date(entry.at).getHours())}:${pad(new Date(entry.at).getMinutes())}` : "";
+	const customerName = String(entry?.customerName || slot?.customerName || "");
+	const customerPhone = String(entry?.customerPhone || slot?.customerPhone || "");
+	const customerLabel = (role === "executor" && customerName && customerPhone)
+		? `клиент "${customerName}" ${customerPhone}`
+		: "клиент";
 	if (entry.kind === "comment") {
 		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
-		const hasCustomerInfo = role === "executor" && entry.customerName && entry.customerPhone;
-		if (hasCustomerInfo) {
-			return `${time} — клиент "${entry.customerName}" ${entry.customerPhone}: ${entry.comment || ""}`;
-		}
-		return `${time} — клиент: ${entry.comment || ""}`;
+		return `${time} — ${customerLabel}: ${entry.comment || ""}`;
 	}
 	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "")}`;
-	return `${time} — клиент: ${getStatusLabel(entry.toStatus || "")}`;
+	return `${time} — ${customerLabel}: ${getStatusLabel(entry.toStatus || "")}`;
 }
 
 function hasStatusDraftChange(slot) {
@@ -619,7 +620,7 @@ function renderCalendar() {
 				}
 
 				const historyHtml = (slot.history || []).length > 0
-					? `<ul class="slot-history">${slot.history.map((h) => `<li>${historyEntryText(h)}</li>`).join("")}</ul>`
+					? `<ul class="slot-history">${slot.history.map((h) => `<li>${historyEntryText(h, slot)}</li>`).join("")}</ul>`
 					: "";
 
 				return `
