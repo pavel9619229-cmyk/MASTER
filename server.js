@@ -397,6 +397,15 @@ function buildStateForSocket(socket) {
 			if (slot.hiddenByMaster) return;
 			if (!inRange(slot.datePart, masterRangeStart, masterRangeEnd)) return;
 			masterSlots[slot.id] = slot;
+			if (slot.status === "requested") {
+				console.log("Server: Sending requested slot to master:", {
+					id: slot.id,
+					status: slot.status,
+					customerName: slot.customerName,
+					customerPhone: slot.customerPhone,
+					history: slot.history?.length || 0,
+				});
+			}
 		});
 		return {
 			settings: state.settings,
