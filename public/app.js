@@ -44,6 +44,7 @@ let customerDraftComments = {};
 let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
+let hasReceivedInitialState = false;
 
 function saveViewState() {
 	const state = {
@@ -381,6 +382,74 @@ function isPastSlot(slot) {
 	const dt = slotDateTime(slot);
 	if (!dt) return false;
 	return dt.getTime() < currentNow().getTime();
+}
+
+function findNewCustomerRequestedSlotId(prevState, nextState) {
+	if (role !== "executor") return "";
+	const prevSlots = prevState && prevState.slots ? prevState.slots : {};
+	const nextSlots = nextState && nextState.slots ? nextState.slots : {};
+	const candidates = Object.values(nextSlots)
+		.filter((slot) => normalizeStatus(slot?.status) === "requested")
+		.filter((slot) => {
+			const prevSlot = prevSlots[slot.id];
+			if (normalizeStatus(prevSlot?.status) === "requested") return false;
+			const history = Array.isArray(slot.history) ? slot.history : [];
+			const lastEntry = history[history.length - 1] || {};
+			return String(lastEntry.by || "") === "customer" && normalizeStatus(lastEntry.toStatus || slot.status) === "requested";
+		});
+	if (candidates.length === 0) return "";
+	candidates.sort((a, b) => {
+		const aTime = slotDateTime(a);
+		const bTime = slotDateTime(b);
+		const diff = (aTime ? aTime.getTime() : 0) - (bTime ? bTime.getTime() : 0);
+		if (diff !== 0) return diff;
+		return String(a.id || "").localeCompare(String(b.id || ""));
+	});
+	return String(candidates[0].id || "");
+}
+
+function scrollToSlotById(slotId) {
+	if (!calendarWrapper || !slotId) return;
+	const slotButton = calendarWrapper.querySelector(`[data-slot-id="${slotId}"]`);
+	if (!slotButton) return;
+	const rowElem = slotButton.closest("tr");
+	const table = calendarWrapper.querySelector("table.calendar");
+	if (!rowElem || !table) return;
+	try {
+		const topbarElem = document.querySelector(".master-page .master-topbar");
+		const topbarHeight = topbarElem ? topbarElem.getBoundingClientRect().height : 0;
+		const theadElem = table.querySelector("thead");
+		const theadHeight = theadElem ? theadElem.getBoundingClientRect().height : 0;
+		const rowRect = rowElem.getBoundingClientRect();
+		const scrollTop = Math.max(0, Math.round(window.scrollY + rowRect.top - topbarHeight - theadHeight - 8));
+		window.scrollTo({ top: scrollTop, behavior: "smooth" });
+	} catch (e) {
+		console.warn("Auto-scroll to requested slot failed:", e);
+	}
+}
+
+function focusNewRequestedSlot(slotId) {
+	if (role !== "executor" || !slotId) return;
+	const slot = appState?.slots?.[slotId];
+	if (!slot) return;
+	const slotDate = parseDateKey(slot.datePart);
+	if (!slotDate) return;
+	const slotDay = startOfDay(slotDate);
+	const weekStart = startOfDay(currentWeekStart);
+	const weekEnd = startOfDay(addDays(currentWeekStart, 6));
+	const inCurrentWeek = slotDay >= weekStart && slotDay <= weekEnd;
+	if (currentView !== "week" || !inCurrentWeek) {
+		currentDay = slotDay;
+		currentWeekStart = startOfWeek(slotDay);
+		currentView = "week";
+		saveViewState();
+		updateViewUI();
+		renderWeekControls();
+		renderView();
+	}
+	setTimeout(() => {
+		scrollToSlotById(slotId);
+	}, 0);
 }
 
 function clampWeekToRange() {
@@ -1181,6 +1250,8 @@ if (masterSettingsBtn) {
 }
 
 socket.on("state", (nextState) => {
+	const shouldTrackNewRequests = hasReceivedInitialState;
+	const newRequestedSlotId = shouldTrackNewRequests ? findNewCustomerRequestedSlotId(appState, nextState) : "";
 	appState = nextState;
 	executorDraftStatuses = {};
 	customerDraftStatuses = {};
@@ -1194,7 +1265,11 @@ socket.on("state", (nextState) => {
 		renderWeekControls();
 		renderView();
 	}
+	if (newRequestedSlotId) {
+		focusNewRequestedSlot(newRequestedSlotId);
+	}
 	updateSettingsCompactMode();
+	hasReceivedInitialState = true;
 });
 
 socket.on("error:message", (message) => {
