@@ -202,23 +202,9 @@ function syncMasterTopbarHeader() {
 		calendarTopbarHeader.style.marginLeft = `${Math.round(wrapperRect.left - topbarContentLeft)}px`;
 		calendarTopbarHeader.style.width = `${Math.round(wrapperRect.width)}px`;
 	}
-	const headerCells = Array.from(topTable.querySelectorAll("th"));
-	if (bodyHeaderCells.length === headerCells.length) {
-		headerCells.forEach((cell, i) => {
-			cell.style.width = `${bodyHeaderCells[i].offsetWidth}px`;
-		});
-	}
 	topTable.style.width = `${bodyTable.offsetWidth}px`;
 	const baseShift = -calendarWrapper.scrollLeft;
 	topTable.style.transform = `translateX(${baseShift}px)`;
-
-	// Pixel-perfect alignment by first column border to eliminate 1px drift.
-	if (headerCells.length > 0 && bodyHeaderCells.length > 0) {
-		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
-		const topFirstLeft = headerCells[0].getBoundingClientRect().left;
-		const correctionShift = Math.round(bodyFirstLeft - topFirstLeft);
-		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
-	}
 	updateMasterLayoutOffset();
 }
 
@@ -799,7 +785,7 @@ function renderCalendar() {
 		: `
 			<thead>
 				<tr>
-					<th>Время</th>
+					<th class="time-label">Время</th>
 					${days.map((d) => {
 						if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
 						return `<th>${toDisplayDate(d)}</th>`;
@@ -812,7 +798,7 @@ function renderCalendar() {
 		? `
 			<thead>
 				<tr>
-					<th></th>
+					<th class="time-label"></th>
 					${days.map((d) => {
 						if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
 						const isWorkDay = weekWorkDays.includes(d.getDay());
