@@ -786,17 +786,19 @@ function renderCalendar() {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
-	const thead = `
-		<thead>
-			<tr>
-				<th>Время</th>
-				${days.map((d) => {
-					if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
-					return `<th>${toDisplayDate(d)}</th>`;
-				}).join("")}
-			</tr>
-		</thead>
-	`;
+	const thead = currentView === "day"
+		? ""
+		: `
+			<thead>
+				<tr>
+					<th>Время</th>
+					${days.map((d) => {
+						if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
+						return `<th>${toDisplayDate(d)}</th>`;
+					}).join("")}
+				</tr>
+			</thead>
+		`;
 
 	const rows = times.map((time) => {
 		const cells = dayKeys.map((dayKey) => {
@@ -892,7 +894,7 @@ function renderCalendar() {
 
 	const dayViewClass = currentView === "day" ? " calendar--day" : "";
 	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${thead}<tbody>${rows}</tbody></table>`;
-	if (role === "executor" && ensureCalendarTopbarHeader()) {
+	if (currentView !== "day" && role === "executor" && ensureCalendarTopbarHeader()) {
 		renderMasterTopbarHeader(thead);
 	} else {
 		clearMasterTopbarHeader();
