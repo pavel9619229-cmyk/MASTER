@@ -1003,22 +1003,22 @@ function renderWeekControls() {
 	if (currentView === "day") {
 		if (weekLabel) weekLabel.textContent = dayLabelText(currentDay);
 		if (weekPrevBtn) {
-			weekPrevBtn.textContent = "← День";
+			weekPrevBtn.textContent = "←";
 			const minDayForPrev = role === "customer" ? startOfDay(currentNow()) : rangeStartDay;
 			weekPrevBtn.disabled = currentDay <= rangeStartDay || currentDay <= minDayForPrev;
 		}
 		if (weekNextBtn) {
-			weekNextBtn.textContent = "День →";
+			weekNextBtn.textContent = "→";
 			weekNextBtn.disabled = currentDay >= rangeEndDay;
 		}
 	} else {
 		if (weekLabel) weekLabel.textContent = weekLabelText(currentWeekStart);
 		if (weekPrevBtn) {
-			weekPrevBtn.textContent = "← Неделя";
+			weekPrevBtn.textContent = "←";
 			weekPrevBtn.disabled = currentWeekStart <= rangeStartWeek;
 		}
 		if (weekNextBtn) {
-			weekNextBtn.textContent = "Неделя →";
+			weekNextBtn.textContent = "→";
 			weekNextBtn.disabled = currentWeekStart >= rangeEndWeek;
 		}
 	}
