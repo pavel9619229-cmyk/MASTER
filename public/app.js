@@ -187,7 +187,11 @@ function syncMasterTopbarHeader() {
 	const bodyTable = calendarWrapper ? calendarWrapper.querySelector("table.calendar") : null;
 	const topTable = calendarTopbarHeader.querySelector("table.calendar-topbar-table");
 	if (!bodyTable || !topTable) return;
-	const bodyHeaderCells = Array.from(bodyTable.querySelectorAll("thead th"));
+	let bodyHeaderCells = Array.from(bodyTable.querySelectorAll("thead th"));
+	if (bodyHeaderCells.length === 0) {
+		const firstBodyRow = bodyTable.querySelector("tbody tr");
+		if (firstBodyRow) bodyHeaderCells = Array.from(firstBodyRow.querySelectorAll("td"));
+	}
 	if (bodyHeaderCells.length === 0) return;
 
 	const wrapperRect = calendarWrapper.getBoundingClientRect();
