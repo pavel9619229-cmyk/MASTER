@@ -858,7 +858,7 @@ function updateViewUI() {
 	if (viewWeekBtn) viewWeekBtn.classList.toggle("active", isWeek);
 	if (viewMonthBtn) viewMonthBtn.classList.toggle("active", isMonth);
 	const weekNavEl = document.getElementById("week-nav");
-	if (weekNavEl) weekNavEl.classLisc:\Users\User\AppData\Local\Packages\MicrosoftWindows.Client.Core_cw5n1h2txyewy\TempState\ScreenClip\{077AF6A0-CD8C-4B44-A235-761F47CC77F4}.pngt.toggle("hidden", isMonth);
+	if (weekNavEl) weekNavEl.classList.toggle("hidden", isMonth);
 	if (monthNavEl) monthNavEl.classList.toggle("hidden", !isMonth);
 	if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
 }
