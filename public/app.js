@@ -1024,6 +1024,21 @@ if (saveWorkHoursBtn) {
 	});
 }
 
+if (masterPhoneInput) {
+	masterPhoneInput.addEventListener("focus", () => {
+		if (!masterPhoneInput.value.trim()) masterPhoneInput.value = PHONE_PREFIX;
+	});
+	masterPhoneInput.addEventListener("input", () => {
+		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+	});
+	masterPhoneInput.addEventListener("change", () => {
+		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+	});
+	masterPhoneInput.addEventListener("blur", () => {
+		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+	});
+}
+
 if (saveMasterProfileBtn) {
 	saveMasterProfileBtn.addEventListener("click", () => {
 		if (role !== "executor") return;
