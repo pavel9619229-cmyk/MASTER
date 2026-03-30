@@ -378,6 +378,11 @@ function getSlotLabel(slot, status) {
 			return `запрос от "${identity.name}" ${identity.phone}`;
 		}
 	}
+	if (normalized === "confirmed") {
+		const slotTime = String(slot?.timePart || "");
+		if (slotTime && role === "customer") return `Ждём вас в ${slotTime}`;
+		if (slotTime && role === "executor") return `запись на ${slotTime}`;
+	}
 	return getStatusLabel(status);
 }
 
@@ -502,14 +507,21 @@ function historyEntryText(entry, slot) {
 	const identity = getSlotCustomerIdentity(slot);
 	const customerName = String(entry?.customerName || identity.name || "");
 	const customerPhone = String(entry?.customerPhone || identity.phone || "");
-	const customerLabel = (role === "executor" && customerName && customerPhone)
-		? `клиент "${customerName}" ${customerPhone}`
-		: "клиент";
+	const masterName = String(appState?.settings?.masterName || "");
+	let customerLabel;
+	if (role === "executor" && customerName && customerPhone) {
+		customerLabel = `клиент "${customerName}" ${customerPhone}`;
+	} else if (role === "customer" && customerName) {
+		customerLabel = customerName;
+	} else {
+		customerLabel = "клиент";
+	}
+	const executorLabel = (role === "customer" && masterName) ? masterName : "мастер";
 	if (entry.kind === "comment") {
-		if (entry.by === "executor") return `${time} — мастер: ${entry.comment || ""}`;
+		if (entry.by === "executor") return `${time} — ${executorLabel}: ${entry.comment || ""}`;
 		return `${time} — ${customerLabel}: ${entry.comment || ""}`;
 	}
-	if (entry.by === "executor") return `${time} — мастер: ${getStatusLabel(entry.toStatus || "")}`;
+	if (entry.by === "executor") return `${time} — ${executorLabel}: ${getStatusLabel(entry.toStatus || "")}`;
 	return `${time} — ${customerLabel}: ${getStatusLabel(entry.toStatus || "")}`;
 }
 
@@ -846,7 +858,7 @@ function updateViewUI() {
 	if (viewWeekBtn) viewWeekBtn.classList.toggle("active", isWeek);
 	if (viewMonthBtn) viewMonthBtn.classList.toggle("active", isMonth);
 	const weekNavEl = document.getElementById("week-nav");
-	if (weekNavEl) weekNavEl.classList.toggle("hidden", isMonth);
+	if (weekNavEl) weekNavEl.classLisc:\Users\User\AppData\Local\Packages\MicrosoftWindows.Client.Core_cw5n1h2txyewy\TempState\ScreenClip\{077AF6A0-CD8C-4B44-A235-761F47CC77F4}.pngt.toggle("hidden", isMonth);
 	if (monthNavEl) monthNavEl.classList.toggle("hidden", !isMonth);
 	if (monthLabelEl) monthLabelEl.textContent = monthLabelText(currentMonthStart);
 }
