@@ -1030,6 +1030,12 @@ h1 {
 	font-size: 15px;
 }
 
+.login-panel-footer {
+	border-top: 1px solid var(--border);
+	padding-top: 16px;
+	margin-top: 4px;
+}
+
 .login-hint {
 	margin: 0;
 	font-size: 13px;

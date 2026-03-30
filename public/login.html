@@ -18,7 +18,7 @@
 			<div class="panel login-panel">
 				<p class="eyebrow">Онлайн-календарь</p>
 				<h1>Вход для мастера</h1>
-				<form class="login-form" method="POST" action="/login">
+				<form class="login-form" id="login-form" method="POST" action="/login">
 					<label class="login-label">
 						Email
 						<input
@@ -41,9 +41,11 @@
 						/>
 					</label>
 					<div id="login-error" class="login-error hidden">Неверный email или пароль.</div>
-					<button type="submit" class="btn primary login-btn">Войти</button>
 				</form>
 				<p class="login-hint">Страница клиента доступна по <a href="/">главной ссылке</a>.</p>
+				<div class="login-panel-footer">
+					<button type="submit" form="login-form" class="btn primary login-btn">Войти</button>
+				</div>
 			</div>
 		</main>
 		<script>
