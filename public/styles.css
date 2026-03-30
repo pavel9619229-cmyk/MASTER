@@ -12,6 +12,7 @@
 	--confirmed: #79d18d;
 	--rejected: #9aa8b0;
 	--accent: #006d77;
+	--btn-accent: #eadfc8;
 }
 
 * {
@@ -155,9 +156,9 @@ h1 {
 }
 
 .btn.primary {
-	background: var(--accent);
-	border-color: var(--accent);
-	color: #fff;
+	background: var(--btn-accent);
+	border-color: var(--btn-accent);
+	color: var(--text);
 }
 
 .calendar-wrapper {
@@ -800,9 +801,9 @@ h1 {
 }
 
 .day-label input[type="checkbox"]:checked + span {
-	background: var(--accent);
+	background: var(--btn-accent);
 	border-color: transparent;
-	color: #fff;
+	color: var(--text);
 }
 
 .legend p {
@@ -855,9 +856,9 @@ h1 {
 }
 
 .view-btn.active {
-	background: var(--accent);
-	border-color: var(--accent);
-	color: #fff;
+	background: var(--btn-accent);
+	border-color: var(--btn-accent);
+	color: var(--text);
 }
 
 /* ── Month calendar ── */
