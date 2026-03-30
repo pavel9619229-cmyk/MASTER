@@ -193,7 +193,9 @@ function syncMasterTopbarHeader() {
 	const wrapperRect = calendarWrapper.getBoundingClientRect();
 	const topbarRect = masterTopbar ? masterTopbar.getBoundingClientRect() : null;
 	if (topbarRect) {
-		calendarTopbarHeader.style.marginLeft = `${wrapperRect.left - topbarRect.left}px`;
+		const topbarStyles = window.getComputedStyle(masterTopbar);
+		const topbarContentLeft = topbarRect.left + (Number.parseFloat(topbarStyles.paddingLeft) || 0);
+		calendarTopbarHeader.style.marginLeft = `${wrapperRect.left - topbarContentLeft}px`;
 		calendarTopbarHeader.style.width = `${wrapperRect.width}px`;
 	}
 	const headerCells = Array.from(topTable.querySelectorAll("th"));
