@@ -199,12 +199,25 @@ function syncMasterTopbarHeader() {
 	if (topbarRect) {
 		const topbarStyles = window.getComputedStyle(masterTopbar);
 		const topbarContentLeft = topbarRect.left + (Number.parseFloat(topbarStyles.paddingLeft) || 0);
-		calendarTopbarHeader.style.marginLeft = `${Math.round(wrapperRect.left - topbarContentLeft)}px`;
-		calendarTopbarHeader.style.width = `${Math.round(wrapperRect.width)}px`;
+		calendarTopbarHeader.style.marginLeft = `${wrapperRect.left - topbarContentLeft}px`;
+		calendarTopbarHeader.style.width = `${wrapperRect.width}px`;
+	}
+	const headerCells = Array.from(topTable.querySelectorAll("th"));
+	if (bodyHeaderCells.length === headerCells.length) {
+		headerCells.forEach((cell, i) => {
+			cell.style.width = `${bodyHeaderCells[i].getBoundingClientRect().width}px`;
+		});
 	}
 	topTable.style.width = `${bodyTable.offsetWidth}px`;
 	const baseShift = -calendarWrapper.scrollLeft;
 	topTable.style.transform = `translateX(${baseShift}px)`;
+
+	if (headerCells.length > 0 && bodyHeaderCells.length > 0) {
+		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
+		const topFirstLeft = headerCells[0].getBoundingClientRect().left;
+		const correctionShift = bodyFirstLeft - topFirstLeft;
+		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
+	}
 	updateMasterLayoutOffset();
 }
 
