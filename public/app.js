@@ -199,24 +199,26 @@ function syncMasterTopbarHeader() {
 	if (topbarRect) {
 		const topbarStyles = window.getComputedStyle(masterTopbar);
 		const topbarContentLeft = topbarRect.left + (Number.parseFloat(topbarStyles.paddingLeft) || 0);
-		calendarTopbarHeader.style.marginLeft = `${wrapperRect.left - topbarContentLeft}px`;
-		calendarTopbarHeader.style.width = `${wrapperRect.width}px`;
+		calendarTopbarHeader.style.marginLeft = `${Math.round(wrapperRect.left - topbarContentLeft)}px`;
+		calendarTopbarHeader.style.width = `${Math.round(wrapperRect.width)}px`;
 	}
 	const headerCells = Array.from(topTable.querySelectorAll("th"));
 	if (bodyHeaderCells.length === headerCells.length) {
 		headerCells.forEach((cell, i) => {
-			cell.style.width = `${bodyHeaderCells[i].getBoundingClientRect().width}px`;
+			cell.style.width = `${bodyHeaderCells[i].offsetWidth}px`;
 		});
 	}
-	topTable.style.width = `${bodyTable.getBoundingClientRect().width}px`;
+	topTable.style.width = `${bodyTable.offsetWidth}px`;
 	const baseShift = -calendarWrapper.scrollLeft;
 	topTable.style.transform = `translateX(${baseShift}px)`;
 
-	// Pixel-perfect alignment: match the left table border to avoid border-collapse half-pixel drift.
-	const bodyTableLeft = bodyTable.getBoundingClientRect().left;
-	const topTableLeft = topTable.getBoundingClientRect().left;
-	const correctionShift = bodyTableLeft - topTableLeft;
-	topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
+	// Pixel-perfect alignment by first column border to eliminate 1px drift.
+	if (headerCells.length > 0 && bodyHeaderCells.length > 0) {
+		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
+		const topFirstLeft = headerCells[0].getBoundingClientRect().left;
+		const correctionShift = Math.round(bodyFirstLeft - topFirstLeft);
+		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
+	}
 	updateMasterLayoutOffset();
 }
 
