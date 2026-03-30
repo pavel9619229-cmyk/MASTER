@@ -1066,6 +1066,10 @@ h1 {
 	margin-top: var(--master-topbar-offset, 210px);
 }
 
+.master-page .calendar {
+	min-width: 0;
+}
+
 @media (min-width: 981px) {
 	.master-page .layout {
 		grid-template-columns: 1fr;
@@ -1168,8 +1172,8 @@ h1 {
 
 .master-page .calendar-topbar-header .calendar {
 	margin: 0;
-	min-width: 890px;
-	width: max-content;
+	min-width: 0;
+	width: 100%;
 }
 
 .master-page .calendar-topbar-header .calendar th {
@@ -1439,6 +1443,10 @@ h1 {
 		min-width: 720px;
 	}
 
+	.master-page .calendar {
+		min-width: 0;
+	}
+
 	.master-page .layout {
 		padding-left: 0;
 		padding-right: 0;
@@ -1504,6 +1512,10 @@ h1 {
 
 	.calendar {
 		min-width: 640px;
+	}
+
+	.master-page .calendar {
+		min-width: 0;
 	}
 
 	.master-page .layout {
