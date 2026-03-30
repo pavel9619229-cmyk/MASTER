@@ -208,15 +208,17 @@ function syncMasterTopbarHeader() {
 			cell.style.width = `${bodyHeaderCells[i].getBoundingClientRect().width}px`;
 		});
 	}
-	topTable.style.width = `${bodyTable.offsetWidth}px`;
+	topTable.style.width = `${bodyTable.getBoundingClientRect().width}px`;
 	const baseShift = -calendarWrapper.scrollLeft;
 	topTable.style.transform = `translateX(${baseShift}px)`;
 
 	if (headerCells.length > 0 && bodyHeaderCells.length > 0) {
-		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
-		const topFirstLeft = headerCells[0].getBoundingClientRect().left;
-		const correctionShift = bodyFirstLeft - topFirstLeft;
-		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
+		const anchorIndex = Math.min(1, headerCells.length - 1, bodyHeaderCells.length - 1);
+		const bodyAnchorLeft = bodyHeaderCells[anchorIndex].getBoundingClientRect().left;
+		const topAnchorLeft = headerCells[anchorIndex].getBoundingClientRect().left;
+		const correctionShift = bodyAnchorLeft - topAnchorLeft;
+		const weekNudge = currentView === "week" ? -1 : 0;
+		topTable.style.transform = `translateX(${baseShift + correctionShift + weekNudge}px)`;
 	}
 	updateMasterLayoutOffset();
 }
