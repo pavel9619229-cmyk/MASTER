@@ -1185,6 +1185,16 @@ h1 {
 	font-size: 13px;
 }
 
+.master-logout-form {
+	margin: 0;
+	padding-top: 10px;
+	border-top: 1px solid var(--border);
+}
+
+.master-logout-form .logout-btn {
+	width: 100%;
+}
+
 .logout-btn:hover {
 	border-color: #c0392b;
 	color: #c0392b;
