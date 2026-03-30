@@ -853,8 +853,8 @@ h1 {
 	display: flex;
 	gap: 4px;
 	align-items: center;
-	flex-wrap: wrap;
-	justify-content: center;
+	flex-wrap: nowrap;
+	justify-content: stretch;
 }
 
 .view-btn {
@@ -1121,7 +1121,12 @@ h1 {
 }
 
 .master-page .master-toolbar .view-toggle {
-	flex: 0 0 auto;
+	flex: 1 1 auto;
+}
+
+.master-page .master-toolbar .view-btn {
+	flex: 1;
+	text-align: center;
 }
 
 .master-page .master-toolbar .week-nav {
