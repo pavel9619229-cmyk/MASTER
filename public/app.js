@@ -772,6 +772,8 @@ function renderCalendar() {
 	const dayKeys = days.map(dateKey);
 	const dayStartKey = dayKeys[0];
 	const dayEndKey = dayKeys[dayKeys.length - 1];
+	const weekKey = dateKey(currentWeekStart);
+	const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
 	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => slot.datePart >= dayStartKey && slot.datePart <= dayEndKey);
 	if (visibleSlots.length === 0) {
 		calendarWrapper.innerHTML = "<p>Нет слотов на выбранный период.</p>";
@@ -786,7 +788,7 @@ function renderCalendar() {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
-	const thead = currentView === "day"
+	const middleThead = (currentView === "day" || currentView === "week")
 		? ""
 		: `
 			<thead>
@@ -800,12 +802,26 @@ function renderCalendar() {
 			</thead>
 		`;
 
+	const topbarThead = currentView === "week"
+		? `
+			<thead>
+				<tr>
+					<th></th>
+					${days.map((d) => {
+						if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
+						const isWorkDay = weekWorkDays.includes(d.getDay());
+						if (!isWorkDay) return '<th class="non-working-day-header"></th>';
+						return `<th>${toDisplayDate(d)}</th>`;
+					}).join("")}
+				</tr>
+			</thead>
+		`
+		: middleThead;
+
 	const rows = times.map((time) => {
 		const cells = dayKeys.map((dayKey) => {
 			const dayDate = parseDateKey(dayKey);
 			const isPastDay = !!(dayDate && startOfDay(dayDate) < todayStart);
-			const weekKey = dateKey(currentWeekStart);
-			const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
 			const isWorkDay = !!(dayDate && weekWorkDays.includes(dayDate.getDay()));
 
 			if (role === "customer" && isPastDay) {
@@ -893,9 +909,9 @@ function renderCalendar() {
 	}).join("");
 
 	const dayViewClass = currentView === "day" ? " calendar--day" : "";
-	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${thead}<tbody>${rows}</tbody></table>`;
-	if (currentView !== "day" && role === "executor" && ensureCalendarTopbarHeader()) {
-		renderMasterTopbarHeader(thead);
+	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${middleThead}<tbody>${rows}</tbody></table>`;
+	if (currentView === "week" && role === "executor" && ensureCalendarTopbarHeader()) {
+		renderMasterTopbarHeader(topbarThead);
 	} else {
 		clearMasterTopbarHeader();
 	}

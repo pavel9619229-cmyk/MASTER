@@ -1176,6 +1176,11 @@ h1 {
 	font-weight: 700;
 }
 
+.master-page .calendar-topbar-header .calendar th.non-working-day-header {
+	background: rgba(122, 130, 137, 0.2);
+	color: transparent;
+}
+
 .master-page .calendar-topbar-table {
 	transform: translateX(0);
 	will-change: transform;
