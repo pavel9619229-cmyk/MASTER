@@ -193,17 +193,27 @@ function syncMasterTopbarHeader() {
 	const wrapperRect = calendarWrapper.getBoundingClientRect();
 	const topbarRect = masterTopbar ? masterTopbar.getBoundingClientRect() : null;
 	if (topbarRect) {
-		calendarTopbarHeader.style.marginLeft = `${Math.round(wrapperRect.left - topbarRect.left)}px`;
-		calendarTopbarHeader.style.width = `${Math.round(wrapperRect.width)}px`;
+		calendarTopbarHeader.style.marginLeft = `${wrapperRect.left - topbarRect.left}px`;
+		calendarTopbarHeader.style.width = `${wrapperRect.width}px`;
 	}
 	const headerCells = Array.from(topTable.querySelectorAll("th"));
 	if (bodyHeaderCells.length === headerCells.length) {
 		headerCells.forEach((cell, i) => {
-			cell.style.width = `${Math.ceil(bodyHeaderCells[i].getBoundingClientRect().width)}px`;
+			cell.style.width = `${bodyHeaderCells[i].getBoundingClientRect().width}px`;
 		});
 	}
-	topTable.style.width = `${Math.ceil(bodyTable.getBoundingClientRect().width)}px`;
-	topTable.style.transform = `translateX(${-calendarWrapper.scrollLeft}px)`;
+	topTable.style.width = `${bodyTable.getBoundingClientRect().width}px`;
+	const baseShift = -calendarWrapper.scrollLeft;
+	topTable.style.transform = `translateX(${baseShift}px)`;
+
+	// Pixel-perfect alignment: match the left border of the first header cell ("Время").
+	const topFirstHeader = topTable.querySelector("thead th");
+	if (topFirstHeader) {
+		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
+		const topFirstLeft = topFirstHeader.getBoundingClientRect().left;
+		const correctionShift = bodyFirstLeft - topFirstLeft;
+		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
+	}
 	updateMasterLayoutOffset();
 }
 
