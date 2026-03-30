@@ -1059,7 +1059,17 @@ h1 {
 }
 
 .master-page .layout {
+	max-width: none;
+	padding-left: 0;
+	padding-right: 0;
 	margin-top: var(--master-topbar-offset, 210px);
+}
+
+.master-page .panel-main,
+.master-page .panel-side {
+	border-left: 0;
+	border-right: 0;
+	border-radius: 0;
 }
 
 @media (min-width: 981px) {
@@ -1222,6 +1232,8 @@ h1 {
 	}
 
 	.master-page .layout {
+		padding-left: 0;
+		padding-right: 0;
 		margin-top: var(--master-topbar-offset, 220px);
 	}
 
@@ -1429,6 +1441,8 @@ h1 {
 	}
 
 	.master-page .layout {
+		padding-left: 0;
+		padding-right: 0;
 		margin-top: var(--master-topbar-offset, 236px);
 	}
 
@@ -1494,6 +1508,8 @@ h1 {
 	}
 
 	.master-page .layout {
+		padding-left: 0;
+		padding-right: 0;
 		margin-top: var(--master-topbar-offset, 216px);
 	}
 
