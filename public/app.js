@@ -28,6 +28,8 @@ const settingsPanel = document.querySelector(".master-page .panel-side");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
+const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
+const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
 
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
@@ -79,6 +81,66 @@ function restoreViewState() {
 	} catch (e) {
 		console.warn("Failed to restore view state:", e);
 	}
+}
+
+function normalizePhoneOrEmpty(value) {
+	const raw = String(value || "").trim();
+	if (!raw) return "";
+	return normalizeCustomerPhoneInput(raw);
+}
+
+function readStoredProfile(storageKey) {
+	try {
+		const raw = localStorage.getItem(storageKey);
+		if (!raw) return { name: "", phone: "" };
+		const parsed = JSON.parse(raw);
+		return {
+			name: String(parsed?.name || ""),
+			phone: String(parsed?.phone || ""),
+		};
+	} catch (e) {
+		return { name: "", phone: "" };
+	}
+}
+
+function saveCustomerProfileToStorage() {
+	if (!customerNameInput || !customerPhoneInput) return;
+	try {
+		const profile = {
+			name: normalizeCustomerNameInput(customerNameInput.value),
+			phone: normalizePhoneOrEmpty(customerPhoneInput.value),
+		};
+		localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+	} catch (e) {
+		console.warn("Failed to save customer profile:", e);
+	}
+}
+
+function loadCustomerProfileFromStorage() {
+	if (!customerNameInput || !customerPhoneInput) return;
+	const profile = readStoredProfile(CUSTOMER_PROFILE_STORAGE_KEY);
+	customerNameInput.value = normalizeCustomerNameInput(profile.name);
+	customerPhoneInput.value = normalizePhoneOrEmpty(profile.phone);
+}
+
+function saveMasterProfileToStorage() {
+	if (!masterNameInput || !masterPhoneInput) return;
+	try {
+		const profile = {
+			name: String(masterNameInput.value || "").replace(/\s+/g, " ").trim(),
+			phone: normalizePhoneOrEmpty(masterPhoneInput.value),
+		};
+		localStorage.setItem(MASTER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+	} catch (e) {
+		console.warn("Failed to save master profile:", e);
+	}
+}
+
+function loadMasterProfileFromStorage() {
+	if (!masterNameInput || !masterPhoneInput) return;
+	const profile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
+	masterNameInput.value = String(profile.name || "").replace(/\s+/g, " ").trim();
+	masterPhoneInput.value = normalizePhoneOrEmpty(profile.phone);
 }
 
 function ensureCalendarTopbarHeader() {
@@ -832,9 +894,17 @@ function renderWeekControls() {
 		const wk = dateKey(currentWeekStart);
 		const selected = Array.isArray(appState.weekWorkDays?.[wk]) ? appState.weekWorkDays[wk] : [];
 		const todayStart = startOfDay(currentNow());
+		const localMasterProfile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
+		const persistedMasterName = String(appState.settings?.masterName || "");
+		const persistedMasterPhone = normalizePhoneOrEmpty(appState.settings?.masterPhone || "");
 
-		if (masterNameInput) masterNameInput.value = String(appState.settings?.masterName || "");
-		if (masterPhoneInput) masterPhoneInput.value = String(appState.settings?.masterPhone || "");
+		if (masterNameInput) {
+			masterNameInput.value = persistedMasterName || String(localMasterProfile.name || "");
+		}
+		if (masterPhoneInput) {
+			masterPhoneInput.value = persistedMasterPhone || normalizePhoneOrEmpty(localMasterProfile.phone || "");
+		}
+		saveMasterProfileToStorage();
 		if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
 		if (workEndHourInput) workEndHourInput.value = String(appState.settings?.endHour ?? 18);
 		
@@ -980,18 +1050,22 @@ if (weekNextBtn) {
 if (customerPhoneInput) {
 	customerPhoneInput.addEventListener("focus", () => {
 		if (!customerPhoneInput.value.trim()) customerPhoneInput.value = PHONE_PREFIX;
+		saveCustomerProfileToStorage();
 	});
 	customerPhoneInput.addEventListener("input", () => {
 		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
 	});
 	customerPhoneInput.addEventListener("change", () => {
 		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
 	});
 	customerPhoneInput.addEventListener("blur", () => {
 		customerPhoneInput.value = normalizeCustomerPhoneInput(customerPhoneInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
 	});
 }
 
@@ -999,14 +1073,32 @@ if (customerNameInput) {
 	customerNameInput.addEventListener("input", () => {
 		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
 	});
 	customerNameInput.addEventListener("change", () => {
 		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
 	});
 	customerNameInput.addEventListener("blur", () => {
 		customerNameInput.value = normalizeCustomerNameInput(customerNameInput.value);
 		syncCustomerIdentityGate();
+		saveCustomerProfileToStorage();
+	});
+}
+
+if (masterNameInput) {
+	masterNameInput.addEventListener("input", () => {
+		masterNameInput.value = String(masterNameInput.value || "").replace(/\s+/g, " ").trimStart();
+		saveMasterProfileToStorage();
+	});
+	masterNameInput.addEventListener("change", () => {
+		masterNameInput.value = String(masterNameInput.value || "").replace(/\s+/g, " ").trim();
+		saveMasterProfileToStorage();
+	});
+	masterNameInput.addEventListener("blur", () => {
+		masterNameInput.value = String(masterNameInput.value || "").replace(/\s+/g, " ").trim();
+		saveMasterProfileToStorage();
 	});
 }
 
@@ -1039,21 +1131,26 @@ if (saveWorkHoursBtn) {
 if (masterPhoneInput) {
 	masterPhoneInput.addEventListener("focus", () => {
 		if (!masterPhoneInput.value.trim()) masterPhoneInput.value = PHONE_PREFIX;
+		saveMasterProfileToStorage();
 	});
 	masterPhoneInput.addEventListener("input", () => {
 		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+		saveMasterProfileToStorage();
 	});
 	masterPhoneInput.addEventListener("change", () => {
 		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+		saveMasterProfileToStorage();
 	});
 	masterPhoneInput.addEventListener("blur", () => {
 		masterPhoneInput.value = normalizeCustomerPhoneInput(masterPhoneInput.value);
+		saveMasterProfileToStorage();
 	});
 }
 
 if (saveMasterProfileBtn) {
 	saveMasterProfileBtn.addEventListener("click", () => {
 		if (role !== "executor") return;
+		saveMasterProfileToStorage();
 		socket.emit("executor:updateMasterProfile", {
 			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
 			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
@@ -1144,8 +1241,12 @@ if (monthNextBtn) {
 	});
 }
 
+loadCustomerProfileFromStorage();
+loadMasterProfileFromStorage();
+
 if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 	customerPhoneInput.value = PHONE_PREFIX;
+	saveCustomerProfileToStorage();
 }
 
 updateMasterLayoutOffset();
