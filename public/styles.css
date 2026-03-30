@@ -284,6 +284,26 @@ h1 {
 	background: var(--requested);
 }
 
+.slot.new-request-attention {
+	animation: requestAttentionPulse 0.95s ease-in-out 3;
+	box-shadow: 0 0 0 0 rgba(246, 196, 84, 0.72), 0 0 0 2px rgba(188, 135, 30, 0.22) inset;
+}
+
+@keyframes requestAttentionPulse {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(246, 196, 84, 0.72), 0 0 0 2px rgba(188, 135, 30, 0.22) inset;
+	}
+	50% {
+		transform: scale(1.03);
+		box-shadow: 0 0 0 10px rgba(246, 196, 84, 0), 0 0 0 2px rgba(188, 135, 30, 0.28) inset;
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(246, 196, 84, 0), 0 0 0 2px rgba(188, 135, 30, 0.22) inset;
+	}
+}
+
 .slot.confirmed {
 	background: var(--confirmed);
 }

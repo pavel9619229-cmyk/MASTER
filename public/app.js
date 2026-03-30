@@ -45,6 +45,8 @@ let masterTopbarBindingsAdded = false;
 let calendarTopbarHeader = null;
 let hasAutoScrolledToCurrentSlot = false;
 let hasReceivedInitialState = false;
+let highlightedRequestedSlotId = "";
+let requestedSlotHighlightUntil = 0;
 
 function saveViewState() {
 	const state = {
@@ -384,6 +386,51 @@ function isPastSlot(slot) {
 	return dt.getTime() < currentNow().getTime();
 }
 
+function shouldHighlightNewRequestSlot(slotId) {
+	return role === "executor"
+		&& String(slotId || "") === highlightedRequestedSlotId
+		&& Date.now() < requestedSlotHighlightUntil;
+}
+
+function playNewRequestSound() {
+	if (role !== "executor") return;
+	try {
+		const AudioCtx = window.AudioContext || window.webkitAudioContext;
+		if (!AudioCtx) return;
+		const ctx = new AudioCtx();
+		const oscillator = ctx.createOscillator();
+		const gainNode = ctx.createGain();
+		oscillator.type = "sine";
+		oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+		gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+		gainNode.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.015);
+		gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+		oscillator.connect(gainNode);
+		gainNode.connect(ctx.destination);
+		oscillator.start();
+		oscillator.stop(ctx.currentTime + 0.32);
+		oscillator.onended = () => {
+			ctx.close().catch(() => {});
+		};
+	} catch (e) {
+		console.warn("Failed to play request sound:", e);
+	}
+}
+
+function markRequestedSlotAttention(slotId) {
+	if (role !== "executor" || !slotId) return;
+	highlightedRequestedSlotId = String(slotId);
+	requestedSlotHighlightUntil = Date.now() + 2800;
+	playNewRequestSound();
+	setTimeout(() => {
+		if (highlightedRequestedSlotId !== String(slotId)) return;
+		if (Date.now() < requestedSlotHighlightUntil) return;
+		highlightedRequestedSlotId = "";
+		requestedSlotHighlightUntil = 0;
+		renderView();
+	}, 2900);
+}
+
 function findNewCustomerRequestedSlotId(prevState, nextState) {
 	if (role !== "executor") return "";
 	const prevSlots = prevState && prevState.slots ? prevState.slots : {};
@@ -432,6 +479,7 @@ function focusNewRequestedSlot(slotId) {
 	if (role !== "executor" || !slotId) return;
 	const slot = appState?.slots?.[slotId];
 	if (!slot) return;
+	markRequestedSlotAttention(slotId);
 	const slotDate = parseDateKey(slot.datePart);
 	if (!slotDate) return;
 	const slotDay = startOfDay(slotDate);
@@ -774,6 +822,7 @@ function renderCalendar() {
 				const draftStatus = role === "executor"
 					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
+				const attentionClass = shouldHighlightNewRequestSlot(slot.id) ? "new-request-attention" : "";
 				const clickable = canClickSlot({ ...slot, status: draftStatus });
 				const canHideUntouched = role === "executor" && !past && !slot.touched;
 				const hideBtnHtml = canHideUntouched
@@ -811,7 +860,7 @@ function renderCalendar() {
 						${hideBtnHtml}${addExtraBtnHtml}
 						<div class="slot-row">
 							<button
-								class="slot ${draftStatus} ${clickable ? "clickable" : ""}"
+								class="slot ${draftStatus} ${clickable ? "clickable" : ""} ${attentionClass}"
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
