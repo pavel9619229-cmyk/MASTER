@@ -19,7 +19,10 @@
 		<div class="master-topbar">
 			<header class="header">
 				<p class="eyebrow">Онлайн-календарь для записи на парикмахерские услугиу</p>
-				<h1>Личный кабинет мастера</h1>
+				<div class="master-title-row">
+					<h1>Личный кабинет мастера</h1>
+					<button id="master-settings-btn" type="button" class="btn">Настройки мастера</button>
+				</div>
 				<p class="subtitle">Личный кабинет мастера для управления расписанием и подтверждением заявок онлан.</p>
 			</header>
 
@@ -39,7 +42,6 @@
 					<div id="month-label" class="week-label"></div>
 					<button id="month-next" type="button" class="btn">Месяц →</button>
 				</div>
-				<button id="master-settings-btn" type="button" class="btn">Настройки мастера</button>
 				<form method="POST" action="/logout" style="margin:0">
 					<button type="submit" class="btn logout-btn">Выйти</button>
 				</form>

@@ -1062,6 +1062,18 @@ h1 {
 	margin: 6px 0 4px;
 }
 
+.master-page .master-title-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.master-page .master-title-row .btn {
+	flex: 0 0 auto;
+	padding: 7px 10px;
+}
+
 .master-page .master-topbar .subtitle {
 	font-size: 12px;
 	line-height: 1.25;
@@ -1142,6 +1154,10 @@ h1 {
 		width: 100%;
 		padding-left: 24px;
 		padding-right: 24px;
+	}
+
+	.master-page .master-title-row {
+		flex-wrap: wrap;
 	}
 
 	.master-page .panel-side {
