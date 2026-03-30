@@ -236,9 +236,9 @@ function ensureMasterTopbarBindings() {
 	masterTopbarBindingsAdded = true;
 }
 
-function renderMasterTopbarHeader(theadHtml) {
+function renderMasterTopbarHeader(theadHtml, colgroupHtml = "") {
 	if (!ensureCalendarTopbarHeader()) return;
-	calendarTopbarHeader.innerHTML = `<table class="calendar calendar-topbar-table">${theadHtml}</table>`;
+	calendarTopbarHeader.innerHTML = `<table class="calendar calendar-topbar-table">${colgroupHtml}${theadHtml}</table>`;
 	calendarTopbarHeader.classList.remove("hidden");
 	ensureMasterTopbarBindings();
 	// Wait one frame so layout is finalized before reading widths.
@@ -795,6 +795,28 @@ function renderCalendar() {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
+	const isWeekView = currentView === "week";
+	const WEEK_TIME_COL_WIDTH = 82;
+	const WEEK_NON_WORK_COL_WIDTH = Math.round(WEEK_TIME_COL_WIDTH / 2);
+	const weekDayMeta = days.map((d) => ({
+		date: d,
+		isWorkDay: weekWorkDays.includes(d.getDay()),
+	}));
+	const workDayCount = weekDayMeta.filter((d) => d.isWorkDay).length;
+	const nonWorkDayCount = weekDayMeta.length - workDayCount;
+	const weekWorkDayWidth = workDayCount > 0
+		? `calc((100% - ${WEEK_TIME_COL_WIDTH}px - ${nonWorkDayCount * WEEK_NON_WORK_COL_WIDTH}px) / ${workDayCount})`
+		: `${WEEK_NON_WORK_COL_WIDTH}px`;
+	const weekColgroup = isWeekView
+		? `
+			<colgroup>
+				<col style="width: ${WEEK_TIME_COL_WIDTH}px;" />
+				${weekDayMeta.map((d) => d.isWorkDay
+					? `<col style="width: ${weekWorkDayWidth};" />`
+					: `<col style="width: ${WEEK_NON_WORK_COL_WIDTH}px;" />`).join("")}
+			</colgroup>
+		`
+		: "";
 	const middleThead = (currentView === "day" || currentView === "week")
 		? ""
 		: `
@@ -814,9 +836,9 @@ function renderCalendar() {
 			<thead>
 				<tr>
 					<th class="time-label"></th>
-					${days.map((d) => {
+					${weekDayMeta.map(({ date, isWorkDay }) => {
+						const d = date;
 						if (role === "customer" && startOfDay(d) < todayStart) return "<th></th>";
-						const isWorkDay = weekWorkDays.includes(d.getDay());
 						if (!isWorkDay) return '<th class="non-working-day-header"></th>';
 						return `<th>${toDisplayDate(d)}</th>`;
 					}).join("")}
@@ -916,9 +938,9 @@ function renderCalendar() {
 	}).join("");
 
 	const dayViewClass = currentView === "day" ? " calendar--day" : "";
-	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${middleThead}<tbody>${rows}</tbody></table>`;
+	calendarWrapper.innerHTML = `<table class="calendar${dayViewClass}">${weekColgroup}${middleThead}<tbody>${rows}</tbody></table>`;
 	if (currentView === "week" && role === "executor" && ensureCalendarTopbarHeader()) {
-		renderMasterTopbarHeader(topbarThead);
+		renderMasterTopbarHeader(topbarThead, weekColgroup);
 	} else {
 		clearMasterTopbarHeader();
 	}
