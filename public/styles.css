@@ -1065,13 +1065,6 @@ h1 {
 	margin-top: var(--master-topbar-offset, 210px);
 }
 
-.master-page .panel-main,
-.master-page .panel-side {
-	border-left: 0;
-	border-right: 0;
-	border-radius: 0;
-}
-
 @media (min-width: 981px) {
 	.master-page .layout {
 		grid-template-columns: 1fr;
