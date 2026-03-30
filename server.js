@@ -367,8 +367,23 @@ function inRange(datePart, rangeStart, rangeEnd) {
 	return d >= rangeStart && d <= rangeEnd;
 }
 
+function filterHistoryForCustomer(slot, customerId) {
+	const history = Array.isArray(slot?.history) ? slot.history : [];
+	const safeCustomerId = String(customerId || "");
+	if (!safeCustomerId) return [];
+	return history.filter((entry) => {
+		const by = String(entry?.by || "");
+		const entryCustomerId = String(entry?.customerId || "");
+		if (by !== "customer" && by !== "executor") return false;
+		return entryCustomerId === safeCustomerId;
+	});
+}
+
 function sanitizeSlotForCustomer(slot, customerId) {
 	const belongs = slot.customerId && slot.customerId === customerId;
+	const conversationHistory = belongs ? filterHistoryForCustomer(slot, customerId) : [];
+	const lastMasterComment = [...conversationHistory].reverse().find((entry) => entry?.kind === "comment" && entry?.by === "executor");
+	const lastCustomerComment = [...conversationHistory].reverse().find((entry) => entry?.kind === "comment" && entry?.by === "customer");
 	return {
 		id: slot.id,
 		baseKey: slot.baseKey,
@@ -377,9 +392,9 @@ function sanitizeSlotForCustomer(slot, customerId) {
 		kind: slot.kind,
 		status: mapCustomerStatus(slot, belongs),
 		updatedAt: slot.updatedAt,
-		customerComment: belongs ? slot.customerComment || "" : "",
-		comment: belongs ? slot.comment || "" : "",
-		history: belongs ? (slot.history || []) : [],
+		customerComment: belongs ? String(lastCustomerComment?.comment || slot.customerComment || "") : "",
+		comment: belongs ? String(lastMasterComment?.comment || "") : "",
+		history: conversationHistory,
 	};
 }
 
