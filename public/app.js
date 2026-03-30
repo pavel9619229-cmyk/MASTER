@@ -587,6 +587,20 @@ function historyEntryText(entry, slot) {
 	return `${time} — ${customerLabel}: ${getStatusLabel(entry.toStatus || "")}`;
 }
 
+function getVisibleHistoryEntries(slot) {
+	const history = Array.isArray(slot?.history) ? slot.history : [];
+	if (role !== "customer") return history;
+	return history.filter((entry) => {
+		const by = String(entry?.by || "");
+		if (by === "customer") return true;
+		if (by === "executor") {
+			// Hide master's internal comments not tied to a specific customer conversation.
+			return Boolean(String(entry?.customerId || ""));
+		}
+		return false;
+	});
+}
+
 function hasStatusDraftChange(slot) {
 	const persisted = normalizeStatus(slot.status);
 	if (role === "executor") {
@@ -718,8 +732,9 @@ function renderCalendar() {
 					`;
 				}
 
-				const historyHtml = (slot.history || []).length > 0
-					? `<ul class="slot-history">${slot.history.map((h) => `<li>${historyEntryText(h, slot)}</li>`).join("")}</ul>`
+				const visibleHistoryEntries = getVisibleHistoryEntries(slot);
+				const historyHtml = visibleHistoryEntries.length > 0
+					? `<ul class="slot-history">${visibleHistoryEntries.map((h) => `<li>${historyEntryText(h, slot)}</li>`).join("")}</ul>`
 					: "";
 
 				return `
