@@ -206,14 +206,11 @@ function syncMasterTopbarHeader() {
 	const baseShift = -calendarWrapper.scrollLeft;
 	topTable.style.transform = `translateX(${baseShift}px)`;
 
-	// Pixel-perfect alignment: match the left border of the first header cell ("Время").
-	const topFirstHeader = topTable.querySelector("thead th");
-	if (topFirstHeader) {
-		const bodyFirstLeft = bodyHeaderCells[0].getBoundingClientRect().left;
-		const topFirstLeft = topFirstHeader.getBoundingClientRect().left;
-		const correctionShift = bodyFirstLeft - topFirstLeft;
-		topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
-	}
+	// Pixel-perfect alignment: match the left table border to avoid border-collapse half-pixel drift.
+	const bodyTableLeft = bodyTable.getBoundingClientRect().left;
+	const topTableLeft = topTable.getBoundingClientRect().left;
+	const correctionShift = bodyTableLeft - topTableLeft;
+	topTable.style.transform = `translateX(${baseShift + correctionShift}px)`;
 	updateMasterLayoutOffset();
 }
 
