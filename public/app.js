@@ -17,11 +17,8 @@ const monthNextBtn = document.getElementById("month-next");
 const monthLabelEl = document.getElementById("month-label");
 const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
-const saveWorkHoursBtn = document.getElementById("save-work-hours");
 const masterNameInput = document.getElementById("master-name");
 const masterPhoneInput = document.getElementById("master-phone");
-const masterAddressInput = document.getElementById("master-address");
-const saveMasterProfileBtn = document.getElementById("save-master-profile");
 const masterTopbar = document.querySelector(".master-page .master-topbar");
 const settingsSection = document.getElementById("settings-section");
 const masterSettingsBtn = document.getElementById("master-settings-btn");
@@ -33,7 +30,7 @@ const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
 const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
 
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
-let appState = { settings: { slotMinutes: 15, masterAddress: "" }, slots: {}, meta: {}, weekWorkDays: {} };
+let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
 let currentWeekStart = startOfWeek(new Date());
 let currentDay = startOfDay(new Date());
 let currentView = "week";
@@ -96,15 +93,14 @@ function normalizePhoneOrEmpty(value) {
 function readStoredProfile(storageKey) {
 	try {
 		const raw = localStorage.getItem(storageKey);
-		if (!raw) return { name: "", phone: "", address: "" };
+		if (!raw) return { name: "", phone: "" };
 		const parsed = JSON.parse(raw);
 		return {
 			name: String(parsed?.name || ""),
 			phone: String(parsed?.phone || ""),
-			address: String(parsed?.address || ""),
 		};
 	} catch (e) {
-		return { name: "", phone: "", address: "" };
+		return { name: "", phone: "" };
 	}
 }
 
@@ -134,7 +130,6 @@ function saveMasterProfileToStorage() {
 		const profile = {
 			name: String(masterNameInput.value || "").replace(/\s+/g, " ").trim(),
 			phone: normalizePhoneOrEmpty(masterPhoneInput.value),
-			address: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
 		};
 		localStorage.setItem(MASTER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
 	} catch (e) {
@@ -147,7 +142,6 @@ function loadMasterProfileFromStorage() {
 	const profile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
 	masterNameInput.value = String(profile.name || "").replace(/\s+/g, " ").trim();
 	masterPhoneInput.value = normalizePhoneOrEmpty(profile.phone);
-	if (masterAddressInput) masterAddressInput.value = String(profile.address || "").replace(/\s+/g, " ").trim();
 }
 
 function ensureCalendarTopbarHeader() {
@@ -697,6 +691,7 @@ function handleSlotClick(slot) {
 	const currentDraft = executorDraftStatuses[slot.id] || normalizeStatus(slot.status);
 	executorDraftStatuses[slot.id] = nextExecutorStatus(currentDraft);
 	renderCalendar();
+	setHint("Мастер: выбран черновой статус, нажмите Подтвердить.");
 }
 
 function getVisibleSlotsForWeek() {
@@ -984,6 +979,7 @@ function renderCalendar() {
 			const slotId = btn.getAttribute("data-delete-slot");
 			if (!slotId || !appState.slots[slotId]) return;
 			socket.emit("executor:hideUntouchedSlot", { slotId });
+			setHint("Слот скрыт. Чтобы вернуть его, выключите и снова включите рабочий день.");
 		};
 
 		btn.addEventListener("pointerdown", (e) => {
@@ -1010,6 +1006,7 @@ function renderCalendar() {
 			const slotId = btn.getAttribute("data-add-extra-slot");
 			if (!slotId) return;
 			socket.emit("executor:addExtraSlot", { slotId });
+			setHint("Свободный слот добавлен.");
 		});
 	});
 
@@ -1035,6 +1032,7 @@ function renderCalendar() {
 			}
 			const selectedStatus = executorDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId].status);
 			socket.emit("executor:confirmSlot", { slotId, selectedStatus });
+			setHint("Статус обновлен.");
 		});
 	});
 
@@ -1058,7 +1056,7 @@ function renderCalendar() {
 			} else {
 				socket.emit("customer:setComment", { slotId, comment: input.value });
 			}
-			if (commentBy !== "executor") setHint("Комментарий сохранен.");
+			setHint("Комментарий сохранен.");
 		});
 	});
 }
@@ -1104,16 +1102,12 @@ function renderWeekControls() {
 		const localMasterProfile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
 		const persistedMasterName = String(appState.settings?.masterName || "");
 		const persistedMasterPhone = normalizePhoneOrEmpty(appState.settings?.masterPhone || "");
-		const persistedMasterAddress = String(appState.settings?.masterAddress || "").replace(/\s+/g, " ").trim();
 
 		if (masterNameInput) {
 			masterNameInput.value = persistedMasterName || String(localMasterProfile.name || "");
 		}
 		if (masterPhoneInput) {
 			masterPhoneInput.value = persistedMasterPhone || normalizePhoneOrEmpty(localMasterProfile.phone || "");
-		}
-		if (masterAddressInput) {
-			masterAddressInput.value = persistedMasterAddress || String(localMasterProfile.address || "").replace(/\s+/g, " ").trim();
 		}
 		saveMasterProfileToStorage();
 		if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
@@ -1321,7 +1315,6 @@ if (settingsForm) {
 		socket.emit("executor:updateMasterProfile", {
 			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
 			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
-			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").trim(),
 		});
 
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
@@ -1336,6 +1329,8 @@ if (settingsForm) {
 			startHour,
 			endHour,
 		});
+
+		setHint("Параметры сохранены.");
 	});
 }
 
@@ -1357,22 +1352,6 @@ if (masterPhoneInput) {
 		saveMasterProfileToStorage();
 	});
 }
-
-if (masterAddressInput) {
-	masterAddressInput.addEventListener("input", () => {
-		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trimStart();
-		saveMasterProfileToStorage();
-	});
-	masterAddressInput.addEventListener("change", () => {
-		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trim();
-		saveMasterProfileToStorage();
-	});
-	masterAddressInput.addEventListener("blur", () => {
-		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trim();
-		saveMasterProfileToStorage();
-	});
-}
-
 
 if (masterSettingsBtn) {
 	masterSettingsBtn.addEventListener("click", () => {
@@ -1476,6 +1455,8 @@ syncCustomerIdentityGate();
 setTimeout(syncCustomerIdentityGate, 150);
 setTimeout(syncCustomerIdentityGate, 800);
 
-if (customerIdentityReady() && role !== "executor") {
+if (role === "executor") {
+	setHint("Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты.");
+} else if (customerIdentityReady()) {
 	setHint("Клиент: доступны только следующие 4 недели.");
 }
