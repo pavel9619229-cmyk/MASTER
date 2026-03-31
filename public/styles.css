@@ -782,6 +782,27 @@ h1 {
 	grid-column: 1 / -1;
 }
 
+.master-address-inline {
+	display: flex !important;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+	min-width: 0;
+}
+
+.master-address-inline-label {
+	color: var(--muted);
+	font-weight: 600;
+	white-space: nowrap;
+	flex: 0 0 auto;
+}
+
+.master-address-inline input {
+	flex: 1 1 auto;
+	min-width: 0;
+	width: 100%;
+}
+
 .master-data-actions {
 	display: flex;
 	justify-content: flex-end;
@@ -1698,6 +1719,14 @@ h1 {
 	}
 
 	.master-data-inline-label {
+		font-size: 12px;
+	}
+
+	.master-address-inline {
+		gap: 6px;
+	}
+
+	.master-address-inline-label {
 		font-size: 12px;
 	}
 
