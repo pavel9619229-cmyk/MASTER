@@ -523,10 +523,21 @@ h1 {
 
 .work-hours-group {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+	grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
 	gap: 10px;
 	align-items: center;
 	margin-top: 8px;
+}
+
+.work-hours-fieldset {
+	padding-top: 8px;
+}
+
+.work-hours-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--text);
+	white-space: nowrap;
 }
 
 .work-hours-group label {
@@ -1338,7 +1349,7 @@ h1 {
 
 	.master-page .work-hours-group {
 		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
 		gap: 8px;
 		align-items: end;
 	}
@@ -1587,6 +1598,10 @@ h1 {
 
 	.work-hours-group {
 		grid-template-columns: 1fr;
+	}
+
+	.work-hours-title {
+		white-space: normal;
 	}
 
 	.master-page .workdays-group {
