@@ -55,7 +55,7 @@
 						<fieldset class="workdays-fieldset unified-settings-card">
 							<div class="master-data-grid">
 								<div class="master-data-inline">
-									<span class="master-data-inline-label">Имя мастера</span>
+									<span class="master-data-inline-label master-name-title">Имя мастера</span>
 									<input
 										id="master-name"
 										class="master-data-name-input"
@@ -93,14 +93,16 @@
 							</div>
 							<div class="work-hours-group">
 								<div class="work-hours-title">Рабочие часы</div>
-								<label class="work-hour-field">
-									<span class="work-hour-prefix">с</span>
-									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
-								</label>
-								<label class="work-hour-field">
-									<span class="work-hour-prefix">до</span>
-									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
-								</label>
+								<div class="work-hours-controls">
+									<label class="work-hour-field">
+										<span class="work-hour-prefix">с</span>
+										<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
+									</label>
+									<label class="work-hour-field">
+										<span class="work-hour-prefix">до</span>
+										<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
+									</label>
+								</div>
 							</div>
 							<div class="unified-settings-actions">
 								<button type="submit" class="btn primary">Сохранить</button>

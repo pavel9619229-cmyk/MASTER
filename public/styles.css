@@ -524,7 +524,7 @@ h1 {
 .work-hours-group {
 	display: flex;
 	flex-wrap: nowrap;
-	gap: 10px;
+	gap: 3ch;
 	align-items: center;
 	margin-top: 8px;
 }
@@ -539,7 +539,15 @@ h1 {
 	color: var(--text);
 	white-space: nowrap;
 	flex: 0 0 auto;
-	min-width: 0;
+	min-width: 14ch;
+	text-align: right;
+}
+
+.work-hours-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
 }
 
 .work-hours-group label {
@@ -760,7 +768,7 @@ h1 {
 .master-data-inline {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 0;
 	flex-wrap: nowrap;
 	min-width: 0;
 }
@@ -777,6 +785,13 @@ h1 {
 	flex: 1 1 0;
 	min-width: 0;
 	width: 100%;
+	margin-right: 8px;
+}
+
+.master-name-title {
+	min-width: 14ch;
+	text-align: right;
+	margin-right: 3ch;
 }
 
 .master-data-phone-input {
@@ -792,7 +807,7 @@ h1 {
 .master-address-inline {
 	display: flex !important;
 	align-items: center;
-	gap: 8px;
+	gap: 3ch;
 	flex-wrap: nowrap;
 	min-width: 0;
 }
@@ -803,6 +818,8 @@ h1 {
 	font-size: 13px;
 	white-space: nowrap;
 	flex: 0 0 auto;
+	min-width: 14ch;
+	text-align: right;
 }
 
 .master-address-inline input {
@@ -850,7 +867,7 @@ h1 {
 .master-page .panel-side.settings-compact .work-hours-group {
 	display: flex;
 	flex-wrap: nowrap;
-	gap: 8px;
+	gap: 3ch;
 	align-items: center;
 }
 
@@ -925,7 +942,7 @@ h1 {
 .workdays-row {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 3ch;
 	flex-wrap: nowrap;
 }
 
@@ -935,7 +952,8 @@ h1 {
 	color: var(--text);
 	white-space: nowrap;
 	flex: 0 0 auto;
-	min-width: 0;
+	min-width: 14ch;
+	text-align: right;
 }
 
 .workdays-group {
@@ -1688,7 +1706,7 @@ h1 {
 	}
 
 	.workdays-row {
-		gap: 6px;
+		gap: 3ch;
 	}
 
 	.workdays-group {
@@ -1706,7 +1724,7 @@ h1 {
 	}
 
 	.work-hours-group {
-		gap: 6px;
+		gap: 3ch;
 	}
 
 	.work-hours-title {
