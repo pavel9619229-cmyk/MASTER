@@ -195,10 +195,10 @@ h1 {
 }
 
 .calendar.calendar--day .time-label {
-	width: 124px;
-	min-width: 124px;
+	width: 92px;
+	min-width: 92px;
 	font-size: 24px;
-	padding: 6px 4px;
+	padding: 6px 2px;
 }
 
 .calendar.calendar--day .slot {
@@ -262,11 +262,13 @@ h1 {
 }
 
 .time-label {
-	width: 164px;
+	width: 116px;
 	font-size: 26px;
 	font-weight: 700;
 	color: var(--muted);
 	background: #fbfdfb;
+	padding-left: 2px;
+	padding-right: 2px;
 }
 
 .slot {
