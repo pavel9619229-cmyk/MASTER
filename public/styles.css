@@ -699,12 +699,17 @@ h1 {
 .master-data-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 10px;
+	gap: 8px;
 	align-items: start;
 }
 
 .master-data-grid label {
 	min-width: 0;
+}
+
+.master-data-grid input {
+	min-width: 0;
+	width: 100%;
 }
 
 .master-data-actions {
@@ -1324,9 +1329,6 @@ h1 {
 		height: 42px;
 	}
 
-	.master-page .master-data-grid {
-		grid-template-columns: 1fr;
-	}
 }
 
 @media (max-width: 760px) {
@@ -1554,7 +1556,17 @@ h1 {
 	}
 
 	.master-data-grid {
-		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.master-data-grid label {
+		gap: 4px;
+		font-size: 12px;
+	}
+
+	.master-data-grid input {
+		padding: 8px 10px;
+		font-size: 14px;
 	}
 
 	.master-page .master-topbar {
