@@ -691,7 +691,6 @@ function handleSlotClick(slot) {
 	const currentDraft = executorDraftStatuses[slot.id] || normalizeStatus(slot.status);
 	executorDraftStatuses[slot.id] = nextExecutorStatus(currentDraft);
 	renderCalendar();
-	setHint("Мастер: выбран черновой статус, нажмите Подтвердить.");
 }
 
 function getVisibleSlotsForWeek() {
@@ -979,7 +978,6 @@ function renderCalendar() {
 			const slotId = btn.getAttribute("data-delete-slot");
 			if (!slotId || !appState.slots[slotId]) return;
 			socket.emit("executor:hideUntouchedSlot", { slotId });
-			setHint("Слот скрыт. Чтобы вернуть его, выключите и снова включите рабочий день.");
 		};
 
 		btn.addEventListener("pointerdown", (e) => {
@@ -1006,7 +1004,6 @@ function renderCalendar() {
 			const slotId = btn.getAttribute("data-add-extra-slot");
 			if (!slotId) return;
 			socket.emit("executor:addExtraSlot", { slotId });
-			setHint("Свободный слот добавлен.");
 		});
 	});
 
@@ -1032,7 +1029,6 @@ function renderCalendar() {
 			}
 			const selectedStatus = executorDraftStatuses[slotId] || normalizeStatus(appState.slots[slotId].status);
 			socket.emit("executor:confirmSlot", { slotId, selectedStatus });
-			setHint("Статус обновлен.");
 		});
 	});
 
@@ -1056,7 +1052,7 @@ function renderCalendar() {
 			} else {
 				socket.emit("customer:setComment", { slotId, comment: input.value });
 			}
-			setHint("Комментарий сохранен.");
+			if (commentBy !== "executor") setHint("Комментарий сохранен.");
 		});
 	});
 }
@@ -1329,8 +1325,6 @@ if (settingsForm) {
 			startHour,
 			endHour,
 		});
-
-		setHint("Параметры сохранены.");
 	});
 }
 
@@ -1455,8 +1449,6 @@ syncCustomerIdentityGate();
 setTimeout(syncCustomerIdentityGate, 150);
 setTimeout(syncCustomerIdentityGate, 800);
 
-if (role === "executor") {
-	setHint("Мастер: переключайте недели, добавляйте рабочие дни и подтверждайте слоты.");
-} else if (customerIdentityReady()) {
+if (customerIdentityReady() && role !== "executor") {
 	setHint("Клиент: доступны только следующие 4 недели.");
 }
