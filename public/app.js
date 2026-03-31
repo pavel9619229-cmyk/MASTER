@@ -19,10 +19,12 @@ const workStartHourInput = document.getElementById("work-start-hour");
 const workEndHourInput = document.getElementById("work-end-hour");
 const masterNameInput = document.getElementById("master-name");
 const masterPhoneInput = document.getElementById("master-phone");
+const masterAddressInput = document.getElementById("master-address");
 const masterTopbar = document.querySelector(".master-page .master-topbar");
 const settingsSection = document.getElementById("settings-section");
 const masterSettingsBtn = document.getElementById("master-settings-btn");
 const settingsPanel = document.querySelector(".master-page .panel-side");
+const settingsSubmitBtn = settingsForm ? settingsForm.querySelector('button[type="submit"]') : null;
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const PHONE_PREFIX = "+7";
@@ -45,6 +47,7 @@ let hasAutoScrolledToCurrentSlot = false;
 let hasReceivedInitialState = false;
 let highlightedRequestedSlotId = "";
 let requestedSlotHighlightUntil = 0;
+let settingsSavedSnapshot = "";
 
 function saveViewState() {
 	const state = {
@@ -161,6 +164,38 @@ function updateMasterLayoutOffset() {
 	const extraGap = 14;
 	const offset = Math.ceil(masterTopbar.getBoundingClientRect().height + top + extraGap);
 	document.documentElement.style.setProperty("--master-topbar-offset", `${offset}px`);
+}
+
+function getSettingsSnapshot() {
+	if (!settingsForm) return "";
+	const masterName = String(masterNameInput ? masterNameInput.value : "").replace(/\s+/g, " ").trim();
+	const masterPhone = normalizePhoneOrEmpty(masterPhoneInput ? masterPhoneInput.value : "");
+	const masterAddress = String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim();
+	const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
+	const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
+	const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked'))
+		.map((el) => Number(el.value))
+		.sort((a, b) => a - b);
+	return JSON.stringify({ masterName, masterPhone, masterAddress, startHour, endHour, workDays });
+}
+
+function setSettingsSubmitVisible(isVisible) {
+	if (!settingsSubmitBtn) return;
+	settingsSubmitBtn.hidden = !isVisible;
+}
+
+function markSettingsSnapshotSaved() {
+	settingsSavedSnapshot = getSettingsSnapshot();
+	setSettingsSubmitVisible(false);
+}
+
+function refreshSettingsSubmitVisibility() {
+	if (!settingsForm || role !== "executor") {
+		setSettingsSubmitVisible(false);
+		return;
+	}
+	if (!settingsSavedSnapshot) settingsSavedSnapshot = getSettingsSnapshot();
+	setSettingsSubmitVisible(getSettingsSnapshot() !== settingsSavedSnapshot);
 }
 
 function updateSettingsCompactMode() {
@@ -1118,6 +1153,7 @@ function renderWeekControls() {
 			el.disabled = isPastDay;
 			el.closest(".day-label").style.opacity = isPastDay ? "0.5" : "1";
 		});
+		markSettingsSnapshotSaved();
 	}
 }
 
@@ -1304,6 +1340,14 @@ if (masterNameInput) {
 }
 
 if (settingsForm) {
+	setSettingsSubmitVisible(false);
+	settingsForm.addEventListener("input", () => {
+		refreshSettingsSubmitVisibility();
+	});
+	settingsForm.addEventListener("change", () => {
+		refreshSettingsSubmitVisibility();
+	});
+
 	settingsForm.addEventListener("submit", (event) => {
 		event.preventDefault();
 		if (role !== "executor") return;
@@ -1311,6 +1355,7 @@ if (settingsForm) {
 		socket.emit("executor:updateMasterProfile", {
 			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
 			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
+			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
 		});
 
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
@@ -1325,6 +1370,7 @@ if (settingsForm) {
 			startHour,
 			endHour,
 		});
+		markSettingsSnapshotSaved();
 	});
 }
 
