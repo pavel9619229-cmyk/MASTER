@@ -789,7 +789,8 @@ h1 {
 }
 
 .master-name-title {
-	min-width: 14ch;
+	width: 16ch;
+	min-width: 16ch;
 	text-align: right;
 	margin-right: 3ch;
 }
@@ -818,7 +819,8 @@ h1 {
 	font-size: 13px;
 	white-space: nowrap;
 	flex: 0 0 auto;
-	min-width: 14ch;
+	width: 16ch;
+	min-width: 16ch;
 	text-align: right;
 }
 
