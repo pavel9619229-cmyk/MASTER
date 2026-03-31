@@ -696,10 +696,26 @@ h1 {
 	font-weight: 600;
 }
 
+.master-data-fieldset {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	align-items: start;
+}
+
+.master-data-fieldset legend {
+	grid-column: 1 / -1;
+}
+
+.master-data-fieldset label {
+	min-width: 0;
+}
+
 .master-data-actions {
 	display: flex;
 	justify-content: flex-end;
 	margin-top: 6px;
+	grid-column: 1 / -1;
 }
 
 .master-page .panel-side.settings-compact .settings-form {
@@ -1311,6 +1327,10 @@ h1 {
 		width: 100%;
 		height: 42px;
 	}
+
+	.master-page .master-data-fieldset {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 760px) {
@@ -1534,6 +1554,10 @@ h1 {
 	}
 
 	.work-hours-group {
+		grid-template-columns: 1fr;
+	}
+
+	.master-data-fieldset {
 		grid-template-columns: 1fr;
 	}
 
