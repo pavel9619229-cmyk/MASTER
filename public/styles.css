@@ -522,22 +522,30 @@ h1 {
 }
 
 .work-hours-group {
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 	gap: 10px;
-	flex-wrap: wrap;
+	align-items: center;
 	margin-top: 8px;
 }
 
 .work-hours-group label {
-	display: grid;
-	gap: 6px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	font-size: 13px;
 	font-weight: 700;
 	color: var(--muted);
+	min-width: 0;
 }
 
 .work-hours-group input {
-	width: 90px;
+	width: 100%;
+	min-width: 0;
+}
+
+.work-hours-group button {
+	white-space: nowrap;
 }
 
 .master-contact-group {
@@ -712,6 +720,10 @@ h1 {
 	width: 100%;
 }
 
+.master-data-grid .master-data-field-full {
+	grid-column: 1 / -1;
+}
+
 .master-data-actions {
 	display: flex;
 	justify-content: flex-end;
@@ -729,7 +741,7 @@ h1 {
 
 .master-page .panel-side.settings-compact .workdays-group {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 	gap: 8px;
 }
 
@@ -772,11 +784,11 @@ h1 {
 }
 
 .master-page .panel-side.settings-compact-xs .workdays-group {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .master-page .panel-side.settings-compact-xs .work-hours-group {
-	grid-template-columns: 1fr;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .week-nav {
@@ -808,6 +820,12 @@ h1 {
 	flex-wrap: wrap;
 	gap: 6px;
 	margin-top: 8px;
+}
+
+.master-page .workdays-group {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px;
 }
 
 .day-label {
@@ -1283,7 +1301,7 @@ h1 {
 
 	.master-page .workdays-group {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 8px;
 	}
 
@@ -1553,6 +1571,14 @@ h1 {
 
 	.work-hours-group {
 		grid-template-columns: 1fr;
+	}
+
+	.master-page .workdays-group {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.master-page .work-hours-group {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.master-data-grid {

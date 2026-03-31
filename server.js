@@ -52,6 +52,7 @@ const state = {
 		slotMinutes: SLOT_MINUTES,
 		masterName: "",
 		masterPhone: "",
+		masterAddress: "",
 	},
 	weekWorkDays: {},
 	slots: {},
@@ -773,10 +774,11 @@ io.on("connection", (socket) => {
 		emitState();
 	});
 
-	socket.on("executor:updateMasterProfile", ({ masterName, masterPhone }) => {
+	socket.on("executor:updateMasterProfile", ({ masterName, masterPhone, masterAddress }) => {
 		if (!isMaster()) return;
 		state.settings.masterName = String(masterName || "").trim().slice(0, 80);
 		state.settings.masterPhone = String(masterPhone || "").trim().slice(0, 30);
+		state.settings.masterAddress = String(masterAddress || "").trim().slice(0, 140);
 		emitState();
 	});
 });

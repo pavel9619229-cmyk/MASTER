@@ -53,7 +53,6 @@
 				<section id="settings-section">
 					<form id="settings-form" class="settings-form">
 						<fieldset class="workdays-fieldset master-data-fieldset">
-							<legend>Данные мастера</legend>
 							<div class="master-data-grid">
 								<label>
 									Имя мастера
@@ -62,6 +61,10 @@
 								<label>
 									Телефон мастера
 									<input id="master-phone" name="masterPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+								</label>
+								<label class="master-data-field-full">
+									Адрес салона
+									<input id="master-address" name="masterAddress" type="text" maxlength="140" placeholder="Например, ул. Ленина, 12" />
 								</label>
 							</div>
 							<div class="master-data-actions">
@@ -85,11 +88,11 @@
 							<legend>Рабочие часы</legend>
 							<div class="work-hours-group">
 								<label>
-									С
+									<span>С</span>
 									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
 								</label>
 								<label>
-									До
+									<span>До</span>
 									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
 								</label>
 								<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
