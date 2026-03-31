@@ -679,7 +679,6 @@ function handleSlotClick(slot) {
 		setTimeout(() => {
 			scrollToSlotById(slot.id);
 		}, 0);
-		setHint("Открыт формат День для выбранного слота.");
 		return;
 	}
 
