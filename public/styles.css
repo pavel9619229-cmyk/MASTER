@@ -696,18 +696,14 @@ h1 {
 	font-weight: 600;
 }
 
-.master-data-fieldset {
+.master-data-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 10px;
 	align-items: start;
 }
 
-.master-data-fieldset legend {
-	grid-column: 1 / -1;
-}
-
-.master-data-fieldset label {
+.master-data-grid label {
 	min-width: 0;
 }
 
@@ -1328,7 +1324,7 @@ h1 {
 		height: 42px;
 	}
 
-	.master-page .master-data-fieldset {
+	.master-page .master-data-grid {
 		grid-template-columns: 1fr;
 	}
 }
@@ -1557,7 +1553,7 @@ h1 {
 		grid-template-columns: 1fr;
 	}
 
-	.master-data-fieldset {
+	.master-data-grid {
 		grid-template-columns: 1fr;
 	}
 
