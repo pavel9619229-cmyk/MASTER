@@ -1359,7 +1359,6 @@ h1 {
 .master-logout-form {
 	margin: 0;
 	padding-top: 10px;
-	border-top: 1px solid var(--border);
 }
 
 .master-logout-form .logout-btn {
