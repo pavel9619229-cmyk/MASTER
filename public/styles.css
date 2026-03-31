@@ -804,7 +804,7 @@ h1 {
 	grid-column: 1 / -1;
 }
 
-.master-address-inline {
+.settings-form .master-address-inline {
 	display: flex !important;
 	align-items: center;
 	gap: 3ch;
@@ -1761,7 +1761,7 @@ h1 {
 		font-size: 12px;
 	}
 
-	.master-address-inline {
+	.settings-form .master-address-inline {
 		gap: 3ch;
 	}
 
