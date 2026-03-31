@@ -523,7 +523,7 @@ h1 {
 
 .work-hours-group {
 	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+	grid-template-columns: auto auto auto auto;
 	gap: 10px;
 	align-items: center;
 	margin-top: 8px;
@@ -552,7 +552,7 @@ h1 {
 
 .work-hours-group .work-hour-field {
 	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-columns: auto 6ch;
 	align-items: center;
 	column-gap: 8px;
 }
@@ -563,8 +563,8 @@ h1 {
 }
 
 .work-hours-group input {
-	width: 100%;
-	min-width: 0;
+	width: 6ch;
+	min-width: 6ch;
 }
 
 .work-hours-group button {
@@ -1349,7 +1349,7 @@ h1 {
 
 	.master-page .work-hours-group {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-columns: auto auto auto auto;
 		gap: 8px;
 		align-items: end;
 	}
@@ -1359,18 +1359,18 @@ h1 {
 	}
 
 	.master-page .work-hours-group .work-hour-field {
-		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-columns: auto 6ch;
 	}
 
 	.master-page .work-hours-group input {
-		width: 100%;
-		min-width: 0;
+		width: 6ch;
+		min-width: 6ch;
 		height: 40px;
 	}
 
 	.master-page .work-hours-group button {
-		grid-column: 1 / -1;
-		width: 100%;
+		grid-column: auto;
+		width: auto;
 		height: 42px;
 	}
 
@@ -1597,7 +1597,7 @@ h1 {
 	}
 
 	.work-hours-group {
-		grid-template-columns: 1fr;
+		grid-template-columns: auto auto auto auto;
 	}
 
 	.work-hours-title {
