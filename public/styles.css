@@ -539,6 +539,18 @@ h1 {
 	min-width: 0;
 }
 
+.work-hours-group .work-hour-field {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	column-gap: 8px;
+}
+
+.work-hours-group .work-hour-prefix {
+	line-height: 1;
+	white-space: nowrap;
+}
+
 .work-hours-group input {
 	width: 100%;
 	min-width: 0;
@@ -1333,6 +1345,10 @@ h1 {
 
 	.master-page .work-hours-group label {
 		min-width: 0;
+	}
+
+	.master-page .work-hours-group .work-hour-field {
+		grid-template-columns: auto minmax(0, 1fr);
 	}
 
 	.master-page .work-hours-group input {
