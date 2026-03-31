@@ -522,8 +522,8 @@ h1 {
 }
 
 .work-hours-group {
-	display: grid;
-	grid-template-columns: auto auto auto;
+	display: flex;
+	flex-wrap: nowrap;
 	gap: 10px;
 	align-items: center;
 	margin-top: 8px;
@@ -538,6 +538,8 @@ h1 {
 	font-weight: 700;
 	color: var(--text);
 	white-space: nowrap;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 .work-hours-group label {
@@ -551,10 +553,10 @@ h1 {
 }
 
 .work-hours-group .work-hour-field {
-	display: grid;
-	grid-template-columns: auto 6ch;
+	display: inline-flex;
 	align-items: center;
-	column-gap: 8px;
+	gap: 8px;
+	flex: 0 0 auto;
 }
 
 .work-hours-group .work-hour-prefix {
@@ -1354,18 +1356,14 @@ h1 {
 	}
 
 	.master-page .work-hours-group {
-		display: grid;
-		grid-template-columns: auto auto auto;
+		display: flex;
+		flex-wrap: nowrap;
 		gap: 8px;
 		align-items: end;
 	}
 
 	.master-page .work-hours-group label {
 		min-width: 0;
-	}
-
-	.master-page .work-hours-group .work-hour-field {
-		grid-template-columns: auto 6ch;
 	}
 
 	.master-page .work-hours-group input {
@@ -1606,11 +1604,16 @@ h1 {
 	}
 
 	.work-hours-group {
-		grid-template-columns: auto auto auto;
+		gap: 6px;
 	}
 
 	.work-hours-title {
-		white-space: normal;
+		white-space: nowrap;
+		font-size: 12px;
+	}
+
+	.work-hours-group .work-hour-field {
+		gap: 6px;
 	}
 
 	.master-page .workdays-group {
