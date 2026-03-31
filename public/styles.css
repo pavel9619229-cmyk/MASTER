@@ -792,24 +792,28 @@ h1 {
 }
 
 .master-page .panel-side.settings-compact .work-hours-group {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	display: flex;
+	flex-wrap: nowrap;
 	gap: 8px;
-	align-items: end;
+	align-items: center;
 }
 
 .master-page .panel-side.settings-compact .work-hours-group label {
 	min-width: 0;
+	flex: 0 0 auto;
 }
 
 .master-page .panel-side.settings-compact .work-hours-group input {
-	width: 100%;
-	min-width: 0;
+	width: 6ch;
+	min-width: 6ch;
 	height: 40px;
 }
 
-.master-page .panel-side.settings-compact .work-hours-group button {
-	grid-column: 1 / -1;
+.master-page .panel-side.settings-compact .work-hours-actions {
+	justify-content: stretch;
+}
+
+.master-page .panel-side.settings-compact .work-hours-actions button {
 	width: 100%;
 	height: 42px;
 }
@@ -819,7 +823,8 @@ h1 {
 }
 
 .master-page .panel-side.settings-compact-xs .work-hours-group {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	display: flex;
+	flex-wrap: nowrap;
 }
 
 .week-nav {
