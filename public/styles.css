@@ -1372,6 +1372,11 @@ h1 {
 	padding: 7px 10px;
 }
 
+#master-settings-btn {
+	font-size: 24px;
+	line-height: 1;
+}
+
 .master-page .master-topbar .subtitle {
 	font-size: 12px;
 	line-height: 1.4;
