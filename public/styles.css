@@ -767,14 +767,15 @@ h1 {
 }
 
 .master-data-name-input {
-	flex: 1 1 auto;
+	flex: 1 1 0;
 	min-width: 0;
+	width: 100%;
 }
 
 .master-data-phone-input {
-	flex: 0 0 12ch;
-	width: 12ch;
-	min-width: 12ch;
+	flex: 1 1 0;
+	width: 100%;
+	min-width: 0;
 }
 
 .master-data-grid .master-data-field-full {
@@ -1701,9 +1702,9 @@ h1 {
 	}
 
 	.master-data-phone-input {
-		flex-basis: 10ch;
-		width: 10ch;
-		min-width: 10ch;
+		flex: 1 1 0;
+		width: 100%;
+		min-width: 0;
 	}
 
 	.master-data-grid input {
