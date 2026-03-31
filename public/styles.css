@@ -789,8 +789,7 @@ h1 {
 }
 
 .master-name-title {
-	width: 16ch;
-	min-width: 16ch;
+	min-width: 14ch;
 	text-align: right;
 	margin-right: 3ch;
 }
@@ -819,9 +818,8 @@ h1 {
 	font-size: 13px;
 	white-space: nowrap;
 	flex: 0 0 auto;
-	width: 16ch;
-	min-width: 16ch;
-	text-align: right;
+	min-width: 14ch;
+	text-align: left;
 }
 
 .master-address-inline input {
@@ -955,7 +953,13 @@ h1 {
 	white-space: nowrap;
 	flex: 0 0 auto;
 	min-width: 14ch;
-	text-align: right;
+	text-align: left;
+}
+
+.work-hours-title,
+.master-data-inline-label,
+.master-name-title {
+	text-align: left;
 }
 
 .workdays-group {
