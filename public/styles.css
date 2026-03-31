@@ -534,7 +534,7 @@ h1 {
 }
 
 .work-hours-title {
-	font-size: 13px;
+	font-size: 16px;
 	font-weight: 700;
 	color: var(--text);
 	white-space: nowrap;
@@ -870,7 +870,7 @@ h1 {
 .master-address-inline-label {
 	color: var(--text);
 	font-weight: 700;
-	font-size: 13px;
+	font-size: 16px;
 	white-space: nowrap;
 	flex: 0 0 auto;
 	min-width: 14ch;
@@ -1002,7 +1002,7 @@ h1 {
 }
 
 .workdays-title {
-	font-size: 13px;
+	font-size: 16px;
 	font-weight: 700;
 	color: var(--text);
 	white-space: nowrap;
@@ -1781,7 +1781,7 @@ h1 {
 
 	.workdays-title {
 		white-space: nowrap;
-		font-size: 12px;
+		font-size: 16px;
 	}
 
 	.master-page .day-label input[type="checkbox"]:checked + span {
@@ -1795,7 +1795,7 @@ h1 {
 
 	.work-hours-title {
 		white-space: nowrap;
-		font-size: 12px;
+		font-size: 16px;
 	}
 
 	.work-hours-group .work-hour-field {
@@ -1832,7 +1832,7 @@ h1 {
 	}
 
 	.master-address-inline-label {
-		font-size: 12px;
+		font-size: 16px;
 	}
 
 	.master-data-phone-input {
