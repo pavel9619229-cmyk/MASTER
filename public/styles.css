@@ -766,8 +766,9 @@ h1 {
 }
 
 .master-data-inline-label {
-	color: var(--muted);
-	font-weight: 600;
+	color: var(--text);
+	font-weight: 700;
+	font-size: 13px;
 	white-space: nowrap;
 	flex: 0 0 auto;
 }
@@ -797,8 +798,9 @@ h1 {
 }
 
 .master-address-inline-label {
-	color: var(--muted);
-	font-weight: 600;
+	color: var(--text);
+	font-weight: 700;
+	font-size: 13px;
 	white-space: nowrap;
 	flex: 0 0 auto;
 }
