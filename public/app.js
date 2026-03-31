@@ -27,6 +27,7 @@ const settingsPanel = document.querySelector(".master-page .panel-side");
 const settingsSubmitBtn = settingsForm ? settingsForm.querySelector('button[type="submit"]') : null;
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const WEEKDAY_LABELS_FULL = ["ВОСКРЕСЕНЬЕ", "ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"];
 const PHONE_PREFIX = "+7";
 const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
 const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
@@ -330,6 +331,7 @@ function startOfMonth(date) {
 }
 
 const MONTH_NAMES = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+const MONTH_NAMES_GENITIVE = ["ЯНВАРЯ", "ФЕВРАЛЯ", "МАРТА", "АПРЕЛЯ", "МАЯ", "ИЮНЯ", "ИЮЛЯ", "АВГУСТА", "СЕНТЯБРЯ", "ОКТЯБРЯ", "НОЯБРЯ", "ДЕКАБРЯ"];
 
 function monthLabelText(date) {
 	return `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`;
@@ -353,7 +355,7 @@ function weekLabelText(weekStart) {
 }
 
 function dayLabelText(day) {
-	return `${toDisplayDate(day)}.${day.getFullYear()}`;
+	return `${WEEKDAY_LABELS_FULL[day.getDay()]}, ${day.getDate()} ${MONTH_NAMES_GENITIVE[day.getMonth()]}`;
 }
 
 function currentNow() {
@@ -1105,6 +1107,7 @@ function renderWeekControls() {
 
 	if (currentView === "day") {
 		if (weekLabel) weekLabel.textContent = dayLabelText(currentDay);
+		if (weekLabel) weekLabel.classList.add("day-indicator-label");
 		if (weekPrevBtn) {
 			weekPrevBtn.textContent = "←";
 			const minDayForPrev = role === "customer" ? startOfDay(currentNow()) : rangeStartDay;
@@ -1116,6 +1119,7 @@ function renderWeekControls() {
 		}
 	} else {
 		if (weekLabel) weekLabel.textContent = weekLabelText(currentWeekStart);
+		if (weekLabel) weekLabel.classList.remove("day-indicator-label");
 		if (weekPrevBtn) {
 			weekPrevBtn.textContent = "←";
 			weekPrevBtn.disabled = currentWeekStart <= rangeStartWeek;

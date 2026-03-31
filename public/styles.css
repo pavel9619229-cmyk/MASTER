@@ -983,6 +983,10 @@ h1 {
 	border: 1px solid var(--border);
 }
 
+.week-label.day-indicator-label {
+	font-size: 20px;
+}
+
 .workdays-fieldset {
 	border: 1px solid var(--border);
 	border-radius: 10px;
