@@ -582,6 +582,7 @@ function getSlotLabel(slot, status) {
 }
 
 function canClickSlot(slot) {
+	if (role === "executor" && currentView === "week") return true;
 	const normalized = normalizeStatus(slot.status);
 	if (isPastSlot(slot)) return false;
 	if (role === "customer") {
@@ -664,6 +665,23 @@ function syncCustomerIdentityGate() {
 
 function handleSlotClick(slot) {
 	if (!canClickSlot(slot)) return;
+
+	if (role === "executor" && currentView === "week") {
+		const slotDate = parseDateKey(slot.datePart);
+		if (!slotDate) return;
+		currentDay = startOfDay(slotDate);
+		currentWeekStart = startOfWeek(currentDay);
+		currentView = "day";
+		saveViewState();
+		updateViewUI();
+		renderWeekControls();
+		renderView();
+		setTimeout(() => {
+			scrollToSlotById(slot.id);
+		}, 0);
+		setHint("Открыт формат День для выбранного слота.");
+		return;
+	}
 
 	if (role === "customer") {
 		const currentDraft = customerDraftStatuses[slot.id] || normalizeStatus(slot.status);
@@ -795,6 +813,7 @@ function renderCalendar() {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
+	const isMasterWeekView = role === "executor" && currentView === "week";
 	const isWeekView = currentView === "week";
 	const WEEK_TIME_COL_WIDTH = 82;
 	const WEEK_NON_WORK_COL_WIDTH = Math.round(WEEK_TIME_COL_WIDTH / 2);
@@ -880,22 +899,22 @@ function renderCalendar() {
 					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
 				const attentionClass = shouldHighlightNewRequestSlot(slot.id) ? "new-request-attention" : "";
 				const clickable = canClickSlot({ ...slot, status: draftStatus });
-				const canHideUntouched = role === "executor" && !past && !slot.touched;
+				const canHideUntouched = role === "executor" && !isMasterWeekView && !past && !slot.touched;
 				const hideBtnHtml = canHideUntouched
 					? `<button type="button" class="slot-hide-btn" data-delete-slot="${slot.id}" title="Сделать слот нерабочим">×</button>`
 					: "";
-				const canAddExtra = role === "executor" && !past && slot.kind === "primary"
+				const canAddExtra = role === "executor" && !isMasterWeekView && !past && slot.kind === "primary"
 					&& normalizeStatus(slot.status) === "confirmed"
 					&& !slotsInCell.some((s) => s.kind === "extra");
 				const addExtraBtnHtml = canAddExtra
 					? `<button type="button" class="slot-add-extra-btn" data-add-extra-slot="${slot.id}" title="Добавить свободный слот на это время">+</button>`
 					: "";
-				const confirmBtnHtml = !past && hasStatusDraftChange(slot)
+				const confirmBtnHtml = !isMasterWeekView && !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
 
 				let commentHtml = "";
-				if (role === "executor" || role === "customer") {
+				if (!isMasterWeekView && (role === "executor" || role === "customer")) {
 					const commentBy = role === "executor" ? "executor" : "customer";
 					const showSend = hasCommentDraftChange(slot, commentBy);
 					commentHtml = `
@@ -906,7 +925,7 @@ function renderCalendar() {
 					`;
 				}
 
-				const visibleHistoryEntries = getVisibleHistoryEntries(slot);
+				const visibleHistoryEntries = isMasterWeekView ? [] : getVisibleHistoryEntries(slot);
 				const historyHtml = visibleHistoryEntries.length > 0
 					? `<ul class="slot-history">${visibleHistoryEntries.map((h) => `<li>${historyEntryText(h, slot)}</li>`).join("")}</ul>`
 					: "";
