@@ -54,14 +54,26 @@
 					<form id="settings-form" class="settings-form">
 						<fieldset class="workdays-fieldset master-data-fieldset">
 							<div class="master-data-grid">
-								<label>
-									Имя мастера
-									<input id="master-name" name="masterName" type="text" maxlength="80" placeholder="Например, Анна" />
-								</label>
-								<label>
-									Телефон мастера
-									<input id="master-phone" name="masterPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
-								</label>
+								<div class="master-data-inline">
+									<span class="master-data-inline-label">Имя мастера</span>
+									<input
+										id="master-name"
+										class="master-data-name-input"
+										name="masterName"
+										type="text"
+										maxlength="80"
+										placeholder="Например, Анна"
+									/>
+									<span class="master-data-inline-label">Тел.</span>
+									<input
+										id="master-phone"
+										class="master-data-phone-input"
+										name="masterPhone"
+										type="tel"
+										maxlength="30"
+										placeholder="+7 900 123-45-67"
+									/>
+								</div>
 								<label class="master-data-field-full">
 									Адрес салона
 									<input id="master-address" name="masterAddress" type="text" maxlength="140" placeholder="Например, ул. Ленина, 12" />

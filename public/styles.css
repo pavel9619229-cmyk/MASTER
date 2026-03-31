@@ -737,7 +737,7 @@ h1 {
 
 .master-data-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: 1fr;
 	gap: 8px;
 	align-items: start;
 }
@@ -749,6 +749,32 @@ h1 {
 .master-data-grid input {
 	min-width: 0;
 	width: 100%;
+}
+
+.master-data-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
+	min-width: 0;
+}
+
+.master-data-inline-label {
+	color: var(--muted);
+	font-weight: 600;
+	white-space: nowrap;
+	flex: 0 0 auto;
+}
+
+.master-data-name-input {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.master-data-phone-input {
+	flex: 0 0 12ch;
+	width: 12ch;
+	min-width: 12ch;
 }
 
 .master-data-grid .master-data-field-full {
@@ -1664,6 +1690,20 @@ h1 {
 	.master-data-grid label {
 		gap: 4px;
 		font-size: 12px;
+	}
+
+	.master-data-inline {
+		gap: 6px;
+	}
+
+	.master-data-inline-label {
+		font-size: 12px;
+	}
+
+	.master-data-phone-input {
+		flex-basis: 10ch;
+		width: 10ch;
+		min-width: 10ch;
 	}
 
 	.master-data-grid input {
