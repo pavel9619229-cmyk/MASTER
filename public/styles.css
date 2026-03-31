@@ -538,7 +538,7 @@ h1 {
 	font-weight: 700;
 	color: var(--text);
 	white-space: nowrap;
-	flex: 1 1 auto;
+	flex: 0 0 auto;
 	min-width: 0;
 }
 
@@ -932,7 +932,7 @@ h1 {
 	font-weight: 700;
 	color: var(--text);
 	white-space: nowrap;
-	flex: 1 1 auto;
+	flex: 0 0 auto;
 	min-width: 0;
 }
 
