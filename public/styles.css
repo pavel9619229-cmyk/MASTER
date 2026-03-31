@@ -1373,8 +1373,10 @@ h1 {
 }
 
 #master-settings-btn {
-	font-size: 24px;
+	font-size: 19.2px;
 	line-height: 1;
+	background: var(--btn-accent);
+	border-color: var(--btn-accent);
 }
 
 .master-page .master-topbar .subtitle {
