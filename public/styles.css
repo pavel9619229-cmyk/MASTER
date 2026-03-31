@@ -771,24 +771,24 @@ h1 {
 }
 
 .master-page .panel-side.settings-compact .workdays-group {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	display: flex;
+	flex-wrap: nowrap;
 	gap: 8px;
 }
 
 .master-page .panel-side.settings-compact .day-label {
 	display: block;
-	width: 100%;
+	width: auto;
 }
 
 .master-page .panel-side.settings-compact .day-label span,
 .master-page .panel-side.settings-compact .day-label input[type="checkbox"]:checked + span {
 	display: block;
-	width: 100%;
+	width: auto;
 	box-sizing: border-box;
 	text-align: center;
 	padding: 8px 6px;
-	font-size: 14px;
+	font-size: 12px;
 }
 
 .master-page .panel-side.settings-compact .work-hours-group {
@@ -819,7 +819,8 @@ h1 {
 }
 
 .master-page .panel-side.settings-compact-xs .workdays-group {
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	display: flex;
+	flex-wrap: nowrap;
 }
 
 .master-page .panel-side.settings-compact-xs .work-hours-group {
@@ -851,16 +852,33 @@ h1 {
 	margin: 0;
 }
 
+.workdays-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: nowrap;
+}
+
+.workdays-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--text);
+	white-space: nowrap;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
 .workdays-group {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	gap: 6px;
-	margin-top: 8px;
+	margin-top: 0;
+	flex: 0 0 auto;
 }
 
 .master-page .workdays-group {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	display: flex;
+	flex-wrap: nowrap;
 	gap: 8px;
 }
 
@@ -874,12 +892,13 @@ h1 {
 
 .day-label span {
 	display: inline-block;
-	padding: 4px 10px;
+	padding: 4px 8px;
 	border-radius: 20px;
 	border: 1px solid var(--border);
 	background: var(--surface-strong);
 	font-weight: 700;
 	font-size: 13px;
+	white-space: nowrap;
 }
 
 .day-label input[type="checkbox"]:checked + span {
@@ -1336,28 +1355,28 @@ h1 {
 	}
 
 	.master-page .workdays-group {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		display: flex;
+		flex-wrap: nowrap;
 		gap: 8px;
 	}
 
 	.master-page .day-label {
 		display: block;
-		width: 100%;
+		width: auto;
 	}
 
 	.master-page .day-label span {
 		display: block;
 		text-align: center;
-		width: 100%;
+		width: auto;
 		padding: 8px 6px;
-		font-size: 14px;
+		font-size: 12px;
 		box-sizing: border-box;
 	}
 
 	.master-page .day-label input[type="checkbox"]:checked + span {
 		display: block;
-		width: 100%;
+		width: auto;
 	}
 
 	.master-page .work-hours-group {
@@ -1599,8 +1618,17 @@ h1 {
 		margin-top: var(--master-topbar-offset, 216px);
 	}
 
+	.workdays-row {
+		gap: 6px;
+	}
+
 	.workdays-group {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 4px;
+	}
+
+	.workdays-title {
+		white-space: nowrap;
+		font-size: 12px;
 	}
 
 	.master-page .day-label input[type="checkbox"]:checked + span {
