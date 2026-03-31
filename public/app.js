@@ -1317,17 +1317,19 @@ if (settingsForm) {
 	settingsForm.addEventListener("submit", (event) => {
 		event.preventDefault();
 		if (role !== "executor") return;
+		saveMasterProfileToStorage();
+		socket.emit("executor:updateMasterProfile", {
+			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
+			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
+			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").trim(),
+		});
+
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
 		socket.emit("executor:updateWeekWorkDays", {
 			weekStart: dateKey(currentWeekStart),
 			workDays,
 		});
-	});
-}
 
-if (saveWorkHoursBtn) {
-	saveWorkHoursBtn.addEventListener("click", () => {
-		if (role !== "executor") return;
 		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
 		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
 		socket.emit("executor:updateWorkingHours", {
@@ -1371,17 +1373,6 @@ if (masterAddressInput) {
 	});
 }
 
-if (saveMasterProfileBtn) {
-	saveMasterProfileBtn.addEventListener("click", () => {
-		if (role !== "executor") return;
-		saveMasterProfileToStorage();
-		socket.emit("executor:updateMasterProfile", {
-			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
-			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
-			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").trim(),
-		});
-	});
-}
 
 if (masterSettingsBtn) {
 	masterSettingsBtn.addEventListener("click", () => {

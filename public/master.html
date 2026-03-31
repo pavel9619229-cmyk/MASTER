@@ -52,7 +52,7 @@
 			<aside class="panel panel-side">
 				<section id="settings-section">
 					<form id="settings-form" class="settings-form">
-						<fieldset class="workdays-fieldset master-data-fieldset">
+						<fieldset class="workdays-fieldset unified-settings-card">
 							<div class="master-data-grid">
 								<div class="master-data-inline">
 									<span class="master-data-inline-label">Имя мастера</span>
@@ -79,11 +79,6 @@
 									<input id="master-address" name="masterAddress" type="text" maxlength="140" placeholder="Например, ул. Ленина, 12" />
 								</label>
 							</div>
-							<div class="master-data-actions">
-								<button id="save-master-profile" type="button" class="btn primary">Сохранить</button>
-							</div>
-						</fieldset>
-						<fieldset class="workdays-fieldset work-days-fieldset">
 							<div class="workdays-row">
 								<div class="workdays-title">Рабочие дни</div>
 								<div class="workdays-group">
@@ -96,9 +91,6 @@
 									<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
 								</div>
 							</div>
-							<button type="submit" class="btn primary">Сохранить</button>
-						</fieldset>
-						<fieldset class="workdays-fieldset work-hours-fieldset">
 							<div class="work-hours-group">
 								<div class="work-hours-title">Рабочие часы</div>
 								<label class="work-hour-field">
@@ -110,8 +102,8 @@
 									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
 								</label>
 							</div>
-							<div class="work-hours-actions">
-								<button id="save-work-hours" type="button" class="btn primary">Сохранить</button>
+							<div class="unified-settings-actions">
+								<button type="submit" class="btn primary">Сохранить</button>
 							</div>
 						</fieldset>
 					</form>
