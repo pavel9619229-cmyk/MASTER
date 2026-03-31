@@ -1392,6 +1392,7 @@ h1 {
 .master-page .master-toolbar .view-btn {
 	flex: 1;
 	text-align: center;
+	font-size: 28px;
 }
 
 .master-page .master-toolbar .week-nav {
@@ -1468,6 +1469,10 @@ h1 {
 	.view-btn {
 		padding: 6px 10px;
 		font-size: 13px;
+	}
+
+	.master-page .view-btn {
+		font-size: 26px;
 	}
 
 	.view-toggle {
@@ -1656,6 +1661,10 @@ h1 {
 	.view-btn {
 		padding: 5px 8px;
 		font-size: 12px;
+	}
+
+	.master-page .view-btn {
+		font-size: 24px;
 	}
 
 	.view-toggle {
@@ -1863,6 +1872,10 @@ h1 {
 	.view-btn {
 		padding: 5px 7px;
 		font-size: 11px;
+	}
+
+	.master-page .view-btn {
+		font-size: 22px;
 	}
 
 	.view-toggle {
