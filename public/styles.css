@@ -85,7 +85,7 @@ body {
 
 .customer-intro-title {
 	margin: 0;
-	font-size: clamp(20px, 2.2vw, 28px);
+	font-size: clamp(24px, 2.64vw, 34px);
 	line-height: 1.25;
 	font-weight: 700;
 	color: var(--text);
@@ -1840,7 +1840,7 @@ h1 {
 	}
 
 	.customer-intro-title {
-		font-size: 18px;
+		font-size: 22px;
 	}
 
 	.customer-page .customer-view-toggle {
