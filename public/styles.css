@@ -83,9 +83,21 @@ body {
 	line-height: 1.45;
 }
 
+.customer-intro-title {
+	margin: 0;
+	font-size: clamp(20px, 2.2vw, 28px);
+	line-height: 1.25;
+	font-weight: 700;
+	color: var(--text);
+}
+
 .customer-intro-text span {
 	color: var(--text);
 	font-weight: 700;
+}
+
+.customer-intro-title span {
+	font-weight: 800;
 }
 
 .customer-view-toggle {
@@ -1825,6 +1837,10 @@ h1 {
 
 	.customer-card-title {
 		font-size: 16px;
+	}
+
+	.customer-intro-title {
+		font-size: 18px;
 	}
 
 	.customer-page .customer-view-toggle {
