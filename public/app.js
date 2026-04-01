@@ -25,6 +25,9 @@ const settingsSection = document.getElementById("settings-section");
 const masterSettingsBtn = document.getElementById("master-settings-btn");
 const settingsPanel = document.querySelector(".master-page .panel-side");
 const settingsSubmitBtn = settingsForm ? settingsForm.querySelector('button[type="submit"]') : null;
+const customerMasterNameEl = document.getElementById("customer-master-name");
+const customerMasterPhoneEl = document.getElementById("customer-master-phone");
+const customerMasterAddressEl = document.getElementById("customer-master-address");
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const WEEKDAY_LABELS_FULL = ["ВОСКРЕСЕНЬЕ", "ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"];
@@ -81,6 +84,9 @@ function restoreViewState() {
 		if (state.monthStart) {
 			const m = parseDateKey(state.monthStart);
 			if (m) currentMonthStart = m;
+		}
+		if (role === "customer" && currentView === "month") {
+			currentView = "week";
 		}
 		console.log("Restored view state:", state);
 	} catch (e) {
@@ -283,6 +289,17 @@ function renderMasterTopbarHeader(theadHtml, colgroupHtml = "") {
 
 function setHint(text) {
 	if (hint) hint.textContent = text;
+}
+
+function updateCustomerMasterInfo() {
+	if (role !== "customer") return;
+	if (!customerMasterNameEl && !customerMasterPhoneEl && !customerMasterAddressEl) return;
+	const masterName = String(appState?.settings?.masterName || "").trim() || "...";
+	const masterPhone = String(appState?.settings?.masterPhone || "").trim() || "...";
+	const masterAddress = String(appState?.settings?.masterAddress || "").trim() || "...";
+	if (customerMasterNameEl) customerMasterNameEl.textContent = masterName;
+	if (customerMasterPhoneEl) customerMasterPhoneEl.textContent = masterPhone;
+	if (customerMasterAddressEl) customerMasterAddressEl.textContent = masterAddress;
 }
 
 function scrollToMasterSettings() {
@@ -1407,6 +1424,7 @@ socket.on("state", (nextState) => {
 	const shouldTrackNewRequests = hasReceivedInitialState;
 	const newRequestedSlotId = shouldTrackNewRequests ? findNewCustomerRequestedSlotId(appState, nextState) : "";
 	appState = nextState;
+	updateCustomerMasterInfo();
 	executorDraftStatuses = {};
 	customerDraftStatuses = {};
 	executorDraftComments = {};

@@ -18,46 +18,54 @@
 
 		<main class="layout">
 			<section class="panel panel-main">
-				<header class="header">
-					<p class="eyebrow">Онлайн-календарь</p>
-					<h1>Запись на услугу</h1>
-					<p class="subtitle">
-						Нажмите на свободный слот, чтобы записаться, или отмените уже сделанную запись.
-					</p>
-				</header>
+				<div class="customer-cards" aria-label="Карточки клиента">
+					<section class="customer-card customer-card-intro">
+						<p class="eyebrow">Онлайн-календарь</p>
+						<h1>Запись на парикмахерские услуги</h1>
+						<p class="customer-intro-text">
+							Онлайн-календарь для записи на парикмахерские услуги мастера
+							<span id="customer-master-name">...</span>,
+							тел. <span id="customer-master-phone">...</span>,
+							по адресу <span id="customer-master-address">...</span>.
+						</p>
+						<div id="customer-data" class="customer-data">
+							<label>
+								Ваше имя
+								<input id="customerName" type="text" maxlength="60" placeholder="Например, Иван" />
+							</label>
+							<label>
+								Телефон
+								<input id="customerPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+							</label>
+						</div>
+					</section>
 
-				<div class="toolbar">
-					<div class="view-toggle">					<button id="view-day" type="button" class="btn view-btn">День</button>						<button id="view-week" type="button" class="btn view-btn active">Неделя</button>
-						<button id="view-month" type="button" class="btn view-btn">Месяц</button>
-					</div>
-					<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
-						<button id="week-prev" type="button" class="btn">← Неделя</button>
-						<div id="week-label" class="week-label"></div>
-						<button id="week-next" type="button" class="btn">Неделя →</button>
-					</div>
-					<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
-						<button id="month-prev" type="button" class="btn">← Месяц</button>
-						<div id="month-label" class="week-label"></div>
-						<button id="month-next" type="button" class="btn">Месяц →</button>
-					</div>
-					<div id="customer-data" class="customer-data">
-						<label>
-							Ваше имя
-							<input id="customerName" type="text" maxlength="60" placeholder="Например, Иван" />
-						</label>
-						<label>
-							Телефон
-							<input id="customerPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
-						</label>
-					</div>
+					<section class="customer-card customer-card-status">
+						<p class="customer-card-title">Информация о наличии записи на данный момент</p>
+						<p id="hint" class="hint"></p>
+					</section>
+
+					<section class="customer-card customer-card-controls">
+						<p class="customer-card-title">Хотите увидеть свободное для записи время на:</p>
+						<div class="view-toggle customer-view-toggle">
+							<button id="view-day" type="button" class="btn view-btn">Сегодня</button>
+							<button id="view-week" type="button" class="btn view-btn active">Неделю</button>
+						</div>
+						<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
+							<button id="week-prev" type="button" class="btn">←</button>
+							<div id="week-label" class="week-label"></div>
+							<button id="week-next" type="button" class="btn">→</button>
+						</div>
+						<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
+							<button id="month-prev" type="button" class="btn">←</button>
+							<div id="month-label" class="week-label"></div>
+							<button id="month-next" type="button" class="btn">→</button>
+						</div>
+					</section>
 				</div>
 
 				<div id="calendar-wrapper" class="calendar-wrapper"></div>
 			</section>
-
-			<aside class="panel panel-side" hidden>
-				<p id="hint" class="hint"></p>
-			</aside>
 		</main>
 
 		<script src="/socket.io/socket.io.js"></script>
