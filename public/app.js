@@ -31,6 +31,8 @@ const customerMasterAddressEl = document.getElementById("customer-master-address
 
 const WEEKDAY_LABELS = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const WEEKDAY_LABELS_FULL = ["ВОСКРЕСЕНЬЕ", "ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"];
+const WEEKDAY_LABELS_LOWER = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
+const MONTH_NAMES_GENITIVE_LOWER = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 const PHONE_PREFIX = "+7";
 const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
 const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
@@ -85,8 +87,10 @@ function restoreViewState() {
 			const m = parseDateKey(state.monthStart);
 			if (m) currentMonthStart = m;
 		}
-		if (role === "customer" && currentView === "month") {
-			currentView = "week";
+		if (role === "customer") {
+			currentView = "day";
+			currentDay = startOfDay(currentNow());
+			currentWeekStart = startOfWeek(currentDay);
 		}
 		console.log("Restored view state:", state);
 	} catch (e) {
@@ -288,7 +292,17 @@ function renderMasterTopbarHeader(theadHtml, colgroupHtml = "") {
 }
 
 function setHint(text) {
-	if (hint) hint.textContent = text;
+	if (!hint) return;
+	if (role !== "customer") {
+		hint.textContent = text;
+		return;
+	}
+	const confirmedSlot = findCustomerConfirmedSlot();
+	if (confirmedSlot) {
+		hint.textContent = confirmedSlotHintText(confirmedSlot);
+		return;
+	}
+	hint.textContent = text;
 }
 
 function updateCustomerMasterInfo() {
@@ -615,6 +629,42 @@ function getSlotCustomerIdentity(slot) {
 		}
 	}
 	return { name: "", phone: "" };
+}
+
+function confirmedSlotHintText(slot) {
+	const slotDate = parseDateKey(slot?.datePart || "");
+	const slotTime = String(slot?.timePart || "").trim() || "--:--";
+	if (!slotDate) return `Вы записаны на ${slotTime}.`;
+	const weekday = WEEKDAY_LABELS_LOWER[slotDate.getDay()] || "";
+	const humanDate = `${slotDate.getDate()} ${MONTH_NAMES_GENITIVE_LOWER[slotDate.getMonth()] || ""}`.trim();
+	return `Вы записаны на ${slotTime}, ${weekday}, ${humanDate}.`;
+}
+
+function findCustomerConfirmedSlot() {
+	if (role !== "customer") return null;
+	if (!customerIdentityReady()) return null;
+	const customerName = normalizeCustomerNameInput(customerNameInput ? customerNameInput.value : "");
+	const customerPhone = normalizeCustomerPhoneInput(customerPhoneInput ? customerPhoneInput.value : "");
+	if (!customerName || !customerPhone) return null;
+	const confirmedSlots = Object.values(appState.slots || {})
+		.filter((slot) => normalizeStatus(slot?.status) === "confirmed")
+		.filter((slot) => {
+			const identity = getSlotCustomerIdentity(slot);
+			return normalizeCustomerNameInput(identity.name) === customerName
+				&& normalizeCustomerPhoneInput(identity.phone) === customerPhone;
+		})
+		.sort((a, b) => {
+			const aDt = slotDateTime(a);
+			const bDt = slotDateTime(b);
+			return (aDt ? aDt.getTime() : 0) - (bDt ? bDt.getTime() : 0);
+		});
+	if (confirmedSlots.length === 0) return null;
+	const nowTs = currentNow().getTime();
+	const upcomingSlot = confirmedSlots.find((slot) => {
+		const dt = slotDateTime(slot);
+		return dt && dt.getTime() >= nowTs;
+	});
+	return upcomingSlot || confirmedSlots[0] || null;
 }
 
 function getSlotLabel(slot, status) {
