@@ -1450,12 +1450,12 @@ h1 {
 
 #week-prev::before,
 #month-prev::before {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M36 10 L10 32 L36 54 M14 32 H86'/%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='20' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M36 10 L10 32 L36 54 M14 32 H86'/%3E%3C/svg%3E");
 }
 
 #week-next::before,
 #month-next::before {
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M60 10 L86 32 L60 54 M10 32 H82'/%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='20' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M60 10 L86 32 L60 54 M10 32 H82'/%3E%3C/svg%3E");
 }
 
 .master-page .calendar-topbar-header {
