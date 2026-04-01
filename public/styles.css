@@ -1422,15 +1422,40 @@ h1 {
 #week-next,
 #month-prev,
 #month-next {
+	--nav-arrow-width: 48px;
+	--nav-arrow-height: 30px;
 	min-width: 72px;
 	min-height: 56px;
 	padding: 0 10px;
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 56px;
-	font-weight: 800;
-	line-height: 0.7;
+	font-size: 0;
+	line-height: 0;
+	color: transparent;
+}
+
+#week-prev::before,
+#week-next::before,
+#month-prev::before,
+#month-next::before {
+	content: "";
+	width: var(--nav-arrow-width);
+	height: var(--nav-arrow-height);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+#week-prev::before,
+#month-prev::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M36 10 L10 32 L36 54 M14 32 H86'/%3E%3C/svg%3E");
+}
+
+#week-next::before,
+#month-next::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64' fill='none' stroke='%231d2a2e' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M60 10 L86 32 L60 54 M10 32 H82'/%3E%3C/svg%3E");
 }
 
 .master-page .calendar-topbar-header {
@@ -1534,9 +1559,10 @@ h1 {
 	#week-next,
 	#month-prev,
 	#month-next {
+		--nav-arrow-width: 42px;
+		--nav-arrow-height: 26px;
 		min-width: 64px;
 		min-height: 50px;
-		font-size: 48px;
 	}
 
 	.master-page .settings-form {
@@ -1761,9 +1787,10 @@ h1 {
 	#week-next,
 	#month-prev,
 	#month-next {
+		--nav-arrow-width: 36px;
+		--nav-arrow-height: 22px;
 		min-width: 56px;
 		min-height: 44px;
-		font-size: 40px;
 	}
 
 }
@@ -1933,8 +1960,9 @@ h1 {
 	#week-next,
 	#month-prev,
 	#month-next {
+		--nav-arrow-width: 32px;
+		--nav-arrow-height: 20px;
 		min-width: 48px;
 		min-height: 40px;
-		font-size: 36px;
 	}
 }
