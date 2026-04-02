@@ -1126,12 +1126,12 @@ function renderCalendar() {
 					: "";
 
 				let commentHtml = "";
-				if (!isMasterWeekView && role === "executor") {
-					const commentBy = "executor";
+				if (!isMasterWeekView && (role === "executor" || (role === "customer" && customerAwaitingMaster))) {
+					const commentBy = role === "executor" ? "executor" : "customer";
 					const showSend = hasCommentDraftChange(slot, commentBy);
 					commentHtml = `
 						<form class="slot-comment-form" data-comment-slot="${slot.id}" data-comment-by="${commentBy}">
-							<input class="slot-comment-input" maxlength="300" value="${getDraftComment(slot, commentBy).replace(/"/g, "&quot;")}" placeholder="Комментарий" />
+							<input class="slot-comment-input" maxlength="300" value="${getDraftComment(slot, commentBy).replace(/"/g, "&quot;")}" placeholder="Комментарий для мастера" />
 							<button type="submit" class="slot-confirm-btn slot-comment-send-btn" ${showSend ? "" : "hidden"}>Отправить</button>
 						</form>
 					`;

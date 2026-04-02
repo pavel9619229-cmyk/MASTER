@@ -346,7 +346,7 @@ h1 {
 
 .customer-page {
 	--customer-time-font-size: 26px;
-	--customer-slot-size: calc(var(--customer-time-font-size) * 3);
+	--customer-slot-size: calc(var(--customer-time-font-size) * 3.9);
 	--customer-slot-min-height: calc(var(--customer-time-font-size) * 3);
 }
 
@@ -453,6 +453,7 @@ h1 {
 }
 
 .customer-page .slot-cell--customer {
+	width: 100%;
 	align-items: center;
 	justify-content: center;
 	padding-right: 0;
@@ -460,7 +461,9 @@ h1 {
 }
 
 .customer-page .slot-row--customer {
+	width: 100%;
 	justify-content: center;
+	align-items: center;
 }
 
 .customer-page .slot.customer-slot {
@@ -469,6 +472,7 @@ h1 {
 	text-align: center;
 	padding: 10px;
 	box-shadow: 0 8px 18px rgba(29, 42, 46, 0.08);
+	margin-inline: auto;
 }
 
 .customer-page .slot.customer-slot .slot-label {
@@ -485,6 +489,7 @@ h1 {
 	min-height: var(--customer-slot-size);
 	border-radius: 50%;
 	padding: 8px;
+	margin-inline: auto;
 }
 
 .customer-page .slot.customer-slot--request-ready {
@@ -507,6 +512,15 @@ h1 {
 .customer-page .slot.customer-slot--free .slot-label,
 .customer-page .slot.customer-slot--request-ready .slot-label {
 	font-size: 11px;
+}
+
+.customer-page .slot-cell--customer .slot-comment-form {
+	width: 100%;
+	margin-top: 6px;
+}
+
+.customer-page .slot-cell--customer .slot-comment-input {
+	min-height: 38px;
 }
 
 .slot-meta {
