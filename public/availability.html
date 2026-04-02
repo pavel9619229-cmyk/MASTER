@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Запись на услугу</title>
+		<title>Свободное время для записи</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
@@ -13,14 +13,16 @@
 		<link rel="stylesheet" href="styles.css" />
 		<script>
 			window.PAGE_ROLE = "customer";
-			window.CUSTOMER_PAGE_MODE = "landing";
+			window.CUSTOMER_PAGE_MODE = "availability";
 		</script>
 	</head>
-	<body class="customer-page">
+	<body class="customer-page customer-availability-page">
 		<div class="background-pattern"></div>
 
 		<main class="layout">
 			<section class="panel panel-main">
+				<a class="back-link" href="/">← Назад к карточкам</a>
+
 				<div class="customer-cards" aria-label="Карточки клиента">
 					<section class="customer-card customer-card-intro">
 						<h1 class="customer-intro-title">
@@ -47,21 +49,25 @@
 					</section>
 
 					<section class="customer-card customer-card-controls">
-						<a class="customer-link-card" href="/availability.html?mode=day">
-							<p class="customer-card-title customer-link-title">Нажмите на свободный слот, чтобы запросить резерв.</p>
-							<p class="customer-card-note">Открыть просмотр свободных дней для записи на новой странице.</p>
-						</a>
-					</section>
-
-					<section class="customer-card customer-card-weeks">
-						<a class="customer-link-card" href="/availability.html?mode=week">
-							<p class="customer-card-title customer-link-title">Посмотреть наличие свободных слотов на ближайшие 4 недели</p>
-							<p class="customer-card-note">Открыть календарь свободного времени по ближайшим неделям.</p>
-						</a>
+						<p class="customer-card-title">Выберите формат просмотра свободного времени</p>
+						<div class="view-toggle customer-view-toggle">
+							<button id="view-day" type="button" class="btn view-btn">Дни</button>
+							<button id="view-week" type="button" class="btn view-btn active">4 недели</button>
+						</div>
+						<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
+							<button id="week-prev" type="button" class="btn">←</button>
+							<div id="week-label" class="week-label"></div>
+							<button id="week-next" type="button" class="btn">→</button>
+						</div>
+						<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
+							<button id="month-prev" type="button" class="btn">←</button>
+							<div id="month-label" class="week-label"></div>
+							<button id="month-next" type="button" class="btn">→</button>
+						</div>
 					</section>
 				</div>
 
-				<div id="calendar-wrapper" class="calendar-wrapper hidden" aria-hidden="true"></div>
+				<div id="calendar-wrapper" class="calendar-wrapper"></div>
 			</section>
 		</main>
 
