@@ -26,6 +26,16 @@
 				<div class="customer-cards" aria-label="Карточки клиента">
 					<section class="customer-card customer-card-controls">
 						<p class="customer-card-title">Выберите формат просмотра свободного времени</p>
+						<div id="customer-data" class="customer-data">
+							<label>
+								Ваше имя
+								<input id="customerName" type="text" maxlength="60" placeholder="Например, Иван" />
+							</label>
+							<label>
+								Телефон
+								<input id="customerPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+							</label>
+						</div>
 						<div class="view-toggle customer-view-toggle">
 							<button id="view-day" type="button" class="btn view-btn">Дни</button>
 							<button id="view-week" type="button" class="btn view-btn active">4 недели</button>
