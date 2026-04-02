@@ -733,6 +733,71 @@ function isValidRussianMobile(value) {
 	return !phone.includes("12345");
 }
 
+function isCustomerFreeSlot(slot) {
+	return role === "customer"
+		&& normalizeStatus(slot?.status) === "free"
+		&& !isPastSlot(slot);
+}
+
+function getCustomerAvailableDayKeys() {
+	if (role !== "customer") return [];
+	const dayKeys = new Set();
+	Object.values(appState.slots || {}).forEach((slot) => {
+		if (!isCustomerFreeSlot(slot) || !slot?.datePart) return;
+		dayKeys.add(String(slot.datePart));
+	});
+	return Array.from(dayKeys).sort();
+}
+
+function findNextCustomerAvailableDay(targetDate) {
+	const targetKey = dateKey(startOfDay(targetDate));
+	const nextKey = getCustomerAvailableDayKeys().find((dayKey) => dayKey >= targetKey);
+	return nextKey ? parseDateKey(nextKey) : null;
+}
+
+function findPreviousCustomerAvailableDay(targetDate) {
+	const targetKey = dateKey(startOfDay(targetDate));
+	const dayKeys = getCustomerAvailableDayKeys();
+	for (let i = dayKeys.length - 1; i >= 0; i -= 1) {
+		if (dayKeys[i] <= targetKey) return parseDateKey(dayKeys[i]);
+	}
+	return null;
+}
+
+function alignCustomerViewToAvailableSlots(direction = 1) {
+	if (role !== "customer") return;
+	const dayKeys = getCustomerAvailableDayKeys();
+	if (dayKeys.length === 0) return;
+	const fallbackDay = direction < 0
+		? (findPreviousCustomerAvailableDay(currentDay) || findNextCustomerAvailableDay(currentDay))
+		: (findNextCustomerAvailableDay(currentDay) || findPreviousCustomerAvailableDay(currentDay));
+	if (currentView === "day") {
+		const currentKey = dateKey(startOfDay(currentDay));
+		if (!dayKeys.includes(currentKey)) {
+			const matchedDay = direction < 0
+				? (findPreviousCustomerAvailableDay(currentDay) || fallbackDay)
+				: (findNextCustomerAvailableDay(currentDay) || fallbackDay);
+			if (matchedDay) currentDay = startOfDay(matchedDay);
+		}
+		currentWeekStart = startOfWeek(currentDay);
+		return;
+	}
+	if (currentView === "week") {
+		const weekStartKey = dateKey(startOfDay(currentWeekStart));
+		const weekEndKey = dateKey(addDays(currentWeekStart, 6));
+		const hasAvailableDayInWeek = dayKeys.some((dayKey) => dayKey >= weekStartKey && dayKey <= weekEndKey);
+		if (!hasAvailableDayInWeek) {
+			const matchedDay = direction < 0
+				? (findPreviousCustomerAvailableDay(currentWeekStart) || fallbackDay)
+				: (findNextCustomerAvailableDay(currentWeekStart) || fallbackDay);
+			if (matchedDay) {
+				currentDay = startOfDay(matchedDay);
+				currentWeekStart = startOfWeek(matchedDay);
+			}
+		}
+	}
+}
+
 function customerIdentityReady() {
 	if (role !== "customer") return true;
 	const nameValue = customerNameInput ? customerNameInput.value : "";
@@ -756,6 +821,7 @@ function syncCustomerIdentityGate() {
 		if (monthNextBtn) monthNextBtn.disabled = true;
 		return;
 	}
+	alignCustomerViewToAvailableSlots(1);
 	if (weekPrevBtn) weekPrevBtn.disabled = false;
 	if (weekNextBtn) weekNextBtn.disabled = false;
 	if (monthPrevBtn) monthPrevBtn.disabled = false;
@@ -883,25 +949,29 @@ function renderCalendar() {
 		return;
 	}
 	const todayStart = startOfDay(currentNow());
+	if (role === "customer") alignCustomerViewToAvailableSlots(1);
 	let days = currentView === "day"
 		? [startOfDay(currentDay)]
 		: Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
-	if (currentView !== "day" && role === "customer") {
-		days = days.filter((d) => startOfDay(d) >= todayStart);
+	if (role === "customer") {
+		const availableDayKeys = new Set(getCustomerAvailableDayKeys());
+		if (currentView !== "day") {
+			days = days.filter((d) => startOfDay(d) >= todayStart);
+		}
+		days = days.filter((d) => availableDayKeys.has(dateKey(startOfDay(d))));
 	}
 	if (days.length === 0) {
-		calendarWrapper.innerHTML = "<p>Нет доступных дней на этой неделе.</p>";
+		calendarWrapper.innerHTML = "<p>На ближайшие 4 недели сейчас нет свободных слотов.</p>";
 		clearMasterTopbarHeader();
 		return;
 	}
 	const dayKeys = days.map(dateKey);
-	const dayStartKey = dayKeys[0];
-	const dayEndKey = dayKeys[dayKeys.length - 1];
+	const dayKeySet = new Set(dayKeys);
 	const weekKey = dateKey(currentWeekStart);
 	const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
-	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => slot.datePart >= dayStartKey && slot.datePart <= dayEndKey);
+	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => dayKeySet.has(slot.datePart));
 	if (visibleSlots.length === 0) {
-		calendarWrapper.innerHTML = "<p>Нет слотов на выбранный период.</p>";
+		calendarWrapper.innerHTML = "<p>На выбранный период сейчас нет свободных слотов.</p>";
 		clearMasterTopbarHeader();
 		return;
 	}
@@ -1177,23 +1247,30 @@ function renderWeekControls() {
 		if (weekLabel) weekLabel.classList.add("day-indicator-label");
 		if (weekPrevBtn) {
 			weekPrevBtn.textContent = "←";
-			const minDayForPrev = role === "customer" ? startOfDay(currentNow()) : rangeStartDay;
-			weekPrevBtn.disabled = currentDay <= rangeStartDay || currentDay <= minDayForPrev;
+			weekPrevBtn.disabled = role === "customer"
+				? !findPreviousCustomerAvailableDay(addDays(currentDay, -1))
+				: currentDay <= rangeStartDay;
 		}
 		if (weekNextBtn) {
 			weekNextBtn.textContent = "→";
-			weekNextBtn.disabled = currentDay >= rangeEndDay;
+			weekNextBtn.disabled = role === "customer"
+				? !findNextCustomerAvailableDay(addDays(currentDay, 1))
+				: currentDay >= rangeEndDay;
 		}
 	} else {
 		if (weekLabel) weekLabel.textContent = weekLabelText(currentWeekStart);
 		if (weekLabel) weekLabel.classList.remove("day-indicator-label");
 		if (weekPrevBtn) {
 			weekPrevBtn.textContent = "←";
-			weekPrevBtn.disabled = currentWeekStart <= rangeStartWeek;
+			weekPrevBtn.disabled = role === "customer"
+				? !findPreviousCustomerAvailableDay(addDays(currentWeekStart, -1))
+				: currentWeekStart <= rangeStartWeek;
 		}
 		if (weekNextBtn) {
 			weekNextBtn.textContent = "→";
-			weekNextBtn.disabled = currentWeekStart >= rangeEndWeek;
+			weekNextBtn.disabled = role === "customer"
+				? !findNextCustomerAvailableDay(addDays(currentWeekStart, 7))
+				: currentWeekStart >= rangeEndWeek;
 		}
 	}
 
@@ -1334,6 +1411,7 @@ if (weekPrevBtn) {
 			currentWeekStart = addDays(currentWeekStart, -7);
 			currentDay = startOfDay(currentWeekStart);
 		}
+		if (role === "customer") alignCustomerViewToAvailableSlots(-1);
 		saveViewState();
 		renderWeekControls();
 		renderCalendar();
@@ -1349,6 +1427,7 @@ if (weekNextBtn) {
 			currentWeekStart = addDays(currentWeekStart, 7);
 			currentDay = startOfDay(currentWeekStart);
 		}
+		if (role === "customer") alignCustomerViewToAvailableSlots(1);
 		saveViewState();
 		renderWeekControls();
 		renderCalendar();
