@@ -107,14 +107,15 @@ function normalizePhoneOrEmpty(value) {
 function readStoredProfile(storageKey) {
 	try {
 		const raw = localStorage.getItem(storageKey);
-		if (!raw) return { name: "", phone: "" };
+		if (!raw) return { name: "", phone: "", address: "" };
 		const parsed = JSON.parse(raw);
 		return {
 			name: String(parsed?.name || ""),
 			phone: String(parsed?.phone || ""),
+			address: String(parsed?.address || ""),
 		};
 	} catch (e) {
-		return { name: "", phone: "" };
+		return { name: "", phone: "", address: "" };
 	}
 }
 
@@ -144,6 +145,7 @@ function saveMasterProfileToStorage() {
 		const profile = {
 			name: String(masterNameInput.value || "").replace(/\s+/g, " ").trim(),
 			phone: normalizePhoneOrEmpty(masterPhoneInput.value),
+			address: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
 		};
 		localStorage.setItem(MASTER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
 	} catch (e) {
@@ -156,6 +158,9 @@ function loadMasterProfileFromStorage() {
 	const profile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
 	masterNameInput.value = String(profile.name || "").replace(/\s+/g, " ").trim();
 	masterPhoneInput.value = normalizePhoneOrEmpty(profile.phone);
+	if (masterAddressInput) {
+		masterAddressInput.value = String(profile.address || "").replace(/\s+/g, " ").trim();
+	}
 }
 
 function ensureCalendarTopbarHeader() {
@@ -308,9 +313,10 @@ function setHint(text) {
 function updateCustomerMasterInfo() {
 	if (role !== "customer") return;
 	if (!customerMasterNameEl && !customerMasterPhoneEl && !customerMasterAddressEl) return;
-	const masterName = String(appState?.settings?.masterName || "").trim() || "...";
-	const masterPhone = String(appState?.settings?.masterPhone || "").trim() || "...";
-	const masterAddress = String(appState?.settings?.masterAddress || "").trim() || "...";
+	const localMasterProfile = readStoredProfile(MASTER_PROFILE_STORAGE_KEY);
+	const masterName = String(appState?.settings?.masterName || localMasterProfile.name || "").trim() || "...";
+	const masterPhone = String(appState?.settings?.masterPhone || localMasterProfile.phone || "").trim() || "...";
+	const masterAddress = String(appState?.settings?.masterAddress || localMasterProfile.address || "").trim() || "...";
 	if (customerMasterNameEl) customerMasterNameEl.textContent = masterName;
 	if (customerMasterPhoneEl) customerMasterPhoneEl.textContent = masterPhone;
 	if (customerMasterAddressEl) customerMasterAddressEl.textContent = masterAddress;
@@ -1585,6 +1591,21 @@ if (masterPhoneInput) {
 	});
 }
 
+if (masterAddressInput) {
+	masterAddressInput.addEventListener("input", () => {
+		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trimStart();
+		saveMasterProfileToStorage();
+	});
+	masterAddressInput.addEventListener("change", () => {
+		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trim();
+		saveMasterProfileToStorage();
+	});
+	masterAddressInput.addEventListener("blur", () => {
+		masterAddressInput.value = String(masterAddressInput.value || "").replace(/\s+/g, " ").trim();
+		saveMasterProfileToStorage();
+	});
+}
+
 if (masterSettingsBtn) {
 	masterSettingsBtn.addEventListener("click", () => {
 		scrollToMasterSettings();
@@ -1676,6 +1697,7 @@ if (monthNextBtn) {
 
 loadCustomerProfileFromStorage();
 loadMasterProfileFromStorage();
+updateCustomerMasterInfo();
 
 if (customerPhoneInput && !customerPhoneInput.value.trim()) {
 	customerPhoneInput.value = PHONE_PREFIX;
