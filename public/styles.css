@@ -344,6 +344,16 @@ h1 {
 	padding-right: 2px;
 }
 
+.customer-page {
+	--customer-time-font-size: 26px;
+	--customer-slot-size: calc(var(--customer-time-font-size) * 3);
+	--customer-slot-min-height: calc(var(--customer-time-font-size) * 3);
+}
+
+.customer-page .calendar.calendar--day {
+	--customer-time-font-size: 24px;
+}
+
 .slot {
 	min-width: 118px;
 	min-height: 38px;
@@ -440,6 +450,63 @@ h1 {
 	font-weight: 700;
 	color: #20333a;
 	white-space: nowrap;
+}
+
+.customer-page .slot-cell--customer {
+	align-items: center;
+	justify-content: center;
+	padding-right: 0;
+	gap: 8px;
+}
+
+.customer-page .slot-row--customer {
+	justify-content: center;
+}
+
+.customer-page .slot.customer-slot {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 10px;
+	box-shadow: 0 8px 18px rgba(29, 42, 46, 0.08);
+}
+
+.customer-page .slot.customer-slot .slot-label {
+	white-space: normal;
+	line-height: 1.15;
+	font-size: 12px;
+}
+
+.customer-page .slot.customer-slot--free,
+.customer-page .slot.customer-slot--request-ready {
+	width: var(--customer-slot-size);
+	min-width: var(--customer-slot-size);
+	height: var(--customer-slot-size);
+	min-height: var(--customer-slot-size);
+	border-radius: 50%;
+	padding: 8px;
+}
+
+.customer-page .slot.customer-slot--request-ready {
+	background: var(--requested);
+}
+
+.customer-page .slot.customer-slot--requested,
+.customer-page .slot.customer-slot--wide {
+	width: 100%;
+	min-width: 0;
+	min-height: var(--customer-slot-min-height);
+	border-radius: 18px;
+	padding: 10px 12px;
+}
+
+.customer-page .slot.customer-slot--requested {
+	background: var(--requested);
+}
+
+.customer-page .slot.customer-slot--free .slot-label,
+.customer-page .slot.customer-slot--request-ready .slot-label {
+	font-size: 11px;
 }
 
 .slot-meta {
@@ -1712,6 +1779,10 @@ h1 {
 }
 
 @media (max-width: 760px) {
+	.customer-page {
+		--customer-time-font-size: 22px;
+	}
+
 	.master-page .master-topbar .subtitle {
 		font-size: 10px;
 	}
@@ -1909,6 +1980,10 @@ h1 {
 @media (max-width: 560px) {
 	body {
 		font-size: 15px;
+	}
+
+	.customer-page {
+		--customer-time-font-size: 20px;
 	}
 
 	.slot-cell {

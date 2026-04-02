@@ -669,6 +669,12 @@ function findCustomerConfirmedSlot() {
 
 function getSlotLabel(slot, status) {
 	const normalized = normalizeStatus(status);
+	const persistedStatus = normalizeStatus(slot?.status);
+	if (role === "customer") {
+		if (persistedStatus === "free" && normalized === "requested") return "отправить запрос";
+		if (persistedStatus === "requested" && normalized === "requested") return "ждём подтверждения мастера";
+		if (normalized === "free") return "свободно";
+	}
 	if (normalized === "requested" && role === "executor") {
 		const identity = getSlotCustomerIdentity(slot);
 		if (identity.name && identity.phone) {
@@ -851,10 +857,32 @@ function handleSlotClick(slot) {
 	}
 
 	if (role === "customer") {
-		const currentDraft = customerDraftStatuses[slot.id] || normalizeStatus(slot.status);
-		customerDraftStatuses[slot.id] = nextCustomerStatus(currentDraft);
-		renderCalendar();
-		setHint("Клиент: выбран черновой статус, нажмите Подтвердить.");
+		const persistedStatus = normalizeStatus(slot.status);
+		const currentDraft = customerDraftStatuses[slot.id] || persistedStatus;
+		if (persistedStatus === "free" && currentDraft === "free") {
+			customerDraftStatuses[slot.id] = "requested";
+			renderCalendar();
+			setHint("Нажмите «отправить запрос», чтобы отправить резерв мастеру.");
+			return;
+		}
+		if (persistedStatus === "free" && currentDraft === "requested") {
+			if (!customerIdentityReady()) {
+				renderCustomerIdentityGate();
+				return;
+			}
+			socket.emit("customer:confirmSlot", {
+				slotId: slot.id,
+				selectedStatus: "requested",
+				customerName: normalizeCustomerNameInput(customerNameInput ? customerNameInput.value : ""),
+				customerPhone: normalizeCustomerPhoneInput(customerPhoneInput ? customerPhoneInput.value : ""),
+			});
+			setHint("Запрос отправлен.");
+			return;
+		}
+		if (persistedStatus === "requested") {
+			setHint("Ждём подтверждения мастера.");
+			return;
+		}
 		return;
 	}
 
@@ -1064,11 +1092,25 @@ function renderCalendar() {
 
 			const slotsHtml = slotsInCell.map((slot) => {
 				const past = isPastSlot(slot);
+				const persistedStatus = normalizeStatus(slot.status);
 				const draftStatus = role === "executor"
-					? (executorDraftStatuses[slot.id] || normalizeStatus(slot.status))
-					: (customerDraftStatuses[slot.id] || normalizeStatus(slot.status));
+					? (executorDraftStatuses[slot.id] || persistedStatus)
+					: (customerDraftStatuses[slot.id] || persistedStatus);
 				const attentionClass = shouldHighlightNewRequestSlot(slot.id) ? "new-request-attention" : "";
-				const clickable = canClickSlot({ ...slot, status: draftStatus });
+				const customerRequestReady = role === "customer" && persistedStatus === "free" && draftStatus === "requested";
+				const customerAwaitingMaster = role === "customer" && persistedStatus === "requested";
+				const customerSlotStateClass = role === "customer"
+					? (customerAwaitingMaster
+						? "customer-slot customer-slot--requested"
+						: (customerRequestReady
+							? "customer-slot customer-slot--request-ready"
+							: (draftStatus === "free"
+								? "customer-slot customer-slot--free"
+								: "customer-slot customer-slot--wide")))
+					: "";
+				const clickable = role === "customer"
+					? (!past && persistedStatus === "free" && (draftStatus === "free" || draftStatus === "requested"))
+					: canClickSlot({ ...slot, status: draftStatus });
 				const canHideUntouched = role === "executor" && !isMasterWeekView && !past && !slot.touched;
 				const hideBtnHtml = canHideUntouched
 					? `<button type="button" class="slot-hide-btn" data-delete-slot="${slot.id}" title="Сделать слот нерабочим">×</button>`
@@ -1079,13 +1121,13 @@ function renderCalendar() {
 				const addExtraBtnHtml = canAddExtra
 					? `<button type="button" class="slot-add-extra-btn" data-add-extra-slot="${slot.id}" title="Добавить свободный слот на это время">+</button>`
 					: "";
-				const confirmBtnHtml = !isMasterWeekView && !past && hasStatusDraftChange(slot)
+				const confirmBtnHtml = role === "executor" && !isMasterWeekView && !past && hasStatusDraftChange(slot)
 					? `<button type="button" class="slot-confirm-btn" data-confirm-slot="${slot.id}">Подтвердить</button>`
 					: "";
 
 				let commentHtml = "";
-				if (!isMasterWeekView && (role === "executor" || role === "customer")) {
-					const commentBy = role === "executor" ? "executor" : "customer";
+				if (!isMasterWeekView && role === "executor") {
+					const commentBy = "executor";
 					const showSend = hasCommentDraftChange(slot, commentBy);
 					commentHtml = `
 						<form class="slot-comment-form" data-comment-slot="${slot.id}" data-comment-by="${commentBy}">
@@ -1101,11 +1143,11 @@ function renderCalendar() {
 					: "";
 
 				return `
-					<div class="slot-cell ${past ? "past-slot" : ""}">
+					<div class="slot-cell ${past ? "past-slot" : ""} ${role === "customer" ? "slot-cell--customer" : ""}">
 						${hideBtnHtml}${addExtraBtnHtml}
-						<div class="slot-row">
+						<div class="slot-row ${role === "customer" ? "slot-row--customer" : ""}">
 							<button
-								class="slot ${draftStatus} ${clickable ? "clickable" : ""} ${attentionClass}"
+								class="slot ${draftStatus} ${customerSlotStateClass} ${clickable ? "clickable" : ""} ${attentionClass}"
 								data-slot-id="${slot.id}"
 								${clickable ? "" : "disabled"}
 								>
