@@ -117,38 +117,6 @@ body {
 	gap: 10px;
 }
 
-.customer-link-card {
-	display: grid;
-	gap: 6px;
-	text-decoration: none;
-	color: inherit;
-}
-
-.customer-link-card:hover .customer-link-title {
-	color: var(--accent);
-}
-
-.customer-card-note {
-	margin: 0;
-	color: var(--muted);
-	font-size: 15px;
-	line-height: 1.4;
-}
-
-.back-link {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	margin-bottom: 14px;
-	color: var(--accent);
-	font-weight: 700;
-	text-decoration: none;
-}
-
-.back-link:hover {
-	text-decoration: underline;
-}
-
 .customer-page #week-prev,
 .customer-page #week-next,
 .customer-page #month-prev,
@@ -1869,10 +1837,6 @@ h1 {
 
 	.customer-card-title {
 		font-size: 16px;
-	}
-
-	.customer-card-note {
-		font-size: 14px;
 	}
 
 	.customer-intro-title {

@@ -36,11 +36,6 @@ const MONTH_NAMES_GENITIVE_LOWER = ["января", "февраля", "март�
 const PHONE_PREFIX = "+7";
 const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
 const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
-const CUSTOMER_DEFAULT_HINT = "Подтвержденной записи на данный момент нет.";
-const CUSTOMER_PAGE_MODE = (typeof window !== "undefined" && window.CUSTOMER_PAGE_MODE) ? String(window.CUSTOMER_PAGE_MODE) : "";
-const CUSTOMER_QUERY_MODE = (typeof window !== "undefined" && window.location)
-	? String(new URLSearchParams(window.location.search).get("mode") || "")
-	: "";
 
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
@@ -59,15 +54,6 @@ let hasReceivedInitialState = false;
 let highlightedRequestedSlotId = "";
 let requestedSlotHighlightUntil = 0;
 let settingsSavedSnapshot = "";
-
-function getCustomerRequestedView() {
-	if (role !== "customer") return currentView;
-	return CUSTOMER_QUERY_MODE === "week" ? "week" : "day";
-}
-
-function isCustomerLandingPage() {
-	return role === "customer" && CUSTOMER_PAGE_MODE === "landing";
-}
 
 function saveViewState() {
 	const state = {
@@ -102,10 +88,9 @@ function restoreViewState() {
 			if (m) currentMonthStart = m;
 		}
 		if (role === "customer") {
-			currentView = getCustomerRequestedView();
+			currentView = "day";
 			currentDay = startOfDay(currentNow());
 			currentWeekStart = startOfWeek(currentDay);
-			currentMonthStart = startOfMonth(currentDay);
 		}
 		console.log("Restored view state:", state);
 	} catch (e) {
@@ -756,9 +741,8 @@ function customerIdentityReady() {
 }
 
 function renderCustomerIdentityGate() {
-	if (calendarWrapper) {
-		calendarWrapper.innerHTML = "<p>Чтобы увидеть расписание, укажите корректные имя и номер телефона.</p>";
-	}
+	if (!calendarWrapper) return;
+	calendarWrapper.innerHTML = "<p>Чтобы увидеть расписание, укажите корректные имя и номер телефона.</p>";
 	setHint("Введите имя (только буквы) и телефон в формате +79XXXXXXXXX.");
 }
 
@@ -776,11 +760,9 @@ function syncCustomerIdentityGate() {
 	if (weekNextBtn) weekNextBtn.disabled = false;
 	if (monthPrevBtn) monthPrevBtn.disabled = false;
 	if (monthNextBtn) monthNextBtn.disabled = false;
-	if (!isCustomerLandingPage()) {
-		renderWeekControls();
-		renderView();
-	}
-	setHint(CUSTOMER_DEFAULT_HINT);
+	renderWeekControls();
+	renderView();
+	setHint("Клиент: доступны только следующие 4 недели.");
 }
 
 function handleSlotClick(slot) {
@@ -896,7 +878,6 @@ function hasCommentDraftChange(slot, commentBy) {
 }
 
 function renderCalendar() {
-	if (!calendarWrapper || isCustomerLandingPage()) return;
 	if (role === "customer" && !customerIdentityReady()) {
 		renderCustomerIdentityGate();
 		return;
@@ -1265,7 +1246,6 @@ function renderView() {
 		renderCustomerIdentityGate();
 		return;
 	}
-	if (!calendarWrapper || isCustomerLandingPage()) return;
 	if (currentView === "month") {
 		renderMonthView();
 	} else {
@@ -1274,7 +1254,6 @@ function renderView() {
 }
 
 function renderMonthView() {
-	if (!calendarWrapper || isCustomerLandingPage()) return;
 	if (role === "customer" && !customerIdentityReady()) {
 		renderCustomerIdentityGate();
 		return;
@@ -1507,7 +1486,6 @@ socket.on("state", (nextState) => {
 	} else {
 		renderWeekControls();
 		renderView();
-		if (role === "customer") setHint(CUSTOMER_DEFAULT_HINT);
 	}
 	if (newRequestedSlotId) {
 		focusNewRequestedSlot(newRequestedSlotId);
@@ -1590,5 +1568,5 @@ setTimeout(syncCustomerIdentityGate, 150);
 setTimeout(syncCustomerIdentityGate, 800);
 
 if (customerIdentityReady() && role !== "executor") {
-	setHint(CUSTOMER_DEFAULT_HINT);
+	setHint("Клиент: доступны только следующие 4 недели.");
 }
