@@ -1010,13 +1010,25 @@ function renderCalendar() {
 		return;
 	}
 
-	const times = getTimesFromSettings();
-
 	const grouped = {};
 	visibleSlots.forEach((slot) => {
 		if (!grouped[slot.baseKey]) grouped[slot.baseKey] = [];
 		grouped[slot.baseKey].push(slot);
 	});
+
+	const times = getTimesFromSettings();
+	const timesToRender = role === "customer"
+		? times.filter((time) => dayKeys.some((dayKey) => {
+			const dayDate = parseDateKey(dayKey);
+			if (!dayDate) return false;
+			const isPastDay = startOfDay(dayDate) < todayStart;
+			const isWorkDay = weekWorkDays.includes(dayDate.getDay());
+			if (isPastDay || !isWorkDay) return false;
+			const key = `${dayKey}T${time}`;
+			const slotsInCell = (grouped[key] || []).filter((slot) => !isPastSlot(slot));
+			return slotsInCell.length > 0;
+		}))
+		: times;
 	const isMasterWeekView = role === "executor" && currentView === "week";
 	const isWeekView = currentView === "week";
 	const WEEK_TIME_COL_WIDTH = 82;
@@ -1070,7 +1082,7 @@ function renderCalendar() {
 		`
 		: middleThead;
 
-	const rows = times.map((time) => {
+	const rows = timesToRender.map((time) => {
 		const cells = dayKeys.map((dayKey) => {
 			const dayDate = parseDateKey(dayKey);
 			const isPastDay = !!(dayDate && startOfDay(dayDate) < todayStart);
