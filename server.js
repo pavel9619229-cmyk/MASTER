@@ -43,7 +43,7 @@ const MASTER_REMEMBER_COOKIE_NAME = "master_auth";
 const MASTER_REMEMBER_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
 const MASTER_PAST_DAYS = 31;
 const MASTER_FUTURE_DAYS = 62;
-const CUSTOMER_FUTURE_DAYS = 28;
+const CUSTOMER_FUTURE_DAYS = 62;
 
 const state = {
 	settings: {

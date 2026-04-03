@@ -842,7 +842,7 @@ function syncCustomerIdentityGate() {
 	if (monthNextBtn) monthNextBtn.disabled = false;
 	renderWeekControls();
 	renderView();
-	setHint("Клиент: доступны только следующие 4 недели.");
+	setHint("Клиент: доступны будущие даты для записи.");
 }
 
 function handleSlotClick(slot) {
@@ -997,7 +997,7 @@ function renderCalendar() {
 		days = days.filter((d) => availableDayKeys.has(dateKey(startOfDay(d))));
 	}
 	if (days.length === 0) {
-		calendarWrapper.innerHTML = "<p>На ближайшие 4 недели сейчас нет свободных слотов.</p>";
+		calendarWrapper.innerHTML = "<p>На выбранный период сейчас нет свободных слотов.</p>";
 		clearMasterTopbarHeader();
 		return;
 	}
