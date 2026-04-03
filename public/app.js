@@ -755,7 +755,9 @@ function getCustomerAvailableDayKeys() {
 	if (role !== "customer") return [];
 	const dayKeys = new Set();
 	Object.values(appState.slots || {}).forEach((slot) => {
-		if (!isCustomerFreeSlot(slot) || !slot?.datePart) return;
+		if (!slot?.datePart) return;
+		const status = normalizeStatus(slot?.status);
+		if (!isCustomerFreeSlot(slot) && status !== "requested" && status !== "confirmed") return;
 		dayKeys.add(String(slot.datePart));
 	});
 	return Array.from(dayKeys).sort();
@@ -1023,9 +1025,12 @@ function renderCalendar() {
 			if (!dayDate) return false;
 			const isPastDay = startOfDay(dayDate) < todayStart;
 			const isWorkDay = weekWorkDays.includes(dayDate.getDay());
-			if (isPastDay || !isWorkDay) return false;
+			if (!isWorkDay) return false;
 			const key = `${dayKey}T${time}`;
-			const slotsInCell = (grouped[key] || []).filter((slot) => !isPastSlot(slot));
+			const slotsInCell = (grouped[key] || []).filter((slot) => {
+				const st = normalizeStatus(slot?.status);
+				return !isPastSlot(slot) || st === "requested" || st === "confirmed";
+			});
 			return slotsInCell.length > 0;
 		}))
 		: times;
