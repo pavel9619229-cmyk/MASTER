@@ -1077,7 +1077,7 @@ function renderCalendar() {
 			const isWorkDay = !!(dayDate && weekWorkDays.includes(dayDate.getDay()));
 
 			if (role === "customer" && isPastDay) {
-				if (!isWorkDay) return '<td class="non-working-day non-working-day-past"></td>';
+				if (!isWorkDay) return "<td></td>";
 				return "<td></td>";
 			}
 			const key = `${dayKey}T${time}`;
@@ -1087,10 +1087,12 @@ function renderCalendar() {
 			const isRemovedWorkingCell = dayDate && isWorkDay && !isPastDay && slotsInCell.length === 0;
 
 			if (dayDate && !isWorkDay && slotsInCell.length === 0) {
+				if (role === "customer") return "<td></td>";
 				return `<td class="non-working-day${isPastDay ? " non-working-day-past" : ""}"></td>`;
 			}
 
 			if (isRemovedWorkingCell) {
+				if (role === "customer") return "<td></td>";
 				return '<td class="non-working-day"></td>';
 			}
 
