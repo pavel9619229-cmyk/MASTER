@@ -451,16 +451,15 @@ function buildStateForSocket(socket) {
 			return;
 		}
 
-		const extras = group.filter((s) => s.kind === "extra");
-		if (extras.length > 0) {
-			const candidate = extras.find((s) => s.status === "free") || extras[0];
-			customerSlots[candidate.id] = sanitizeSlotForCustomer(candidate, currentCustomerId);
+		const freeExtras = group.filter((s) => s.kind === "extra" && s.status === "free");
+		if (freeExtras.length > 0) {
+			customerSlots[freeExtras[0].id] = sanitizeSlotForCustomer(freeExtras[0], currentCustomerId);
 			return;
 		}
 
-		const primary = group.find((s) => s.kind === "primary") || group[0];
-		if (primary) {
-			customerSlots[primary.id] = sanitizeSlotForCustomer(primary, currentCustomerId);
+		const freePrimary = group.find((s) => s.kind === "primary" && s.status === "free");
+		if (freePrimary) {
+			customerSlots[freePrimary.id] = sanitizeSlotForCustomer(freePrimary, currentCustomerId);
 		}
 	});
 
