@@ -297,6 +297,46 @@ function renderMasterTopbarHeader(theadHtml, colgroupHtml = "") {
 	});
 }
 
+function findCustomerRequestedSlot() {
+	if (role !== "customer") return null;
+	if (!customerIdentityReady()) return null;
+	const customerName = normalizeCustomerNameInput(customerNameInput ? customerNameInput.value : "");
+	const customerPhone = normalizeCustomerPhoneInput(customerPhoneInput ? customerPhoneInput.value : "");
+	if (!customerName || !customerPhone) return null;
+	const requestedSlots = Object.values(appState.slots || {})
+		.filter((slot) => normalizeStatus(slot?.status) === "requested")
+		.filter((slot) => {
+			const identity = getSlotCustomerIdentity(slot);
+			return normalizeCustomerNameInput(identity.name) === customerName
+				&& normalizeCustomerPhoneInput(identity.phone) === customerPhone;
+		})
+		.sort((a, b) => {
+			const aDt = slotDateTime(a);
+			const bDt = slotDateTime(b);
+			return (aDt ? aDt.getTime() : 0) - (bDt ? bDt.getTime() : 0);
+		});
+	return requestedSlots.length > 0 ? requestedSlots[0] : null;
+}
+
+function getCustomerAvailableDaysWithSlots() {
+	if (role !== "customer") return [];
+	const daysWithFree = new Map();
+	Object.values(appState.slots || {}).forEach((slot) => {
+		if (normalizeStatus(slot?.status) !== "free" || isPastSlot(slot)) return;
+		if (!slot.datePart) return;
+		const d = parseDateKey(slot.datePart);
+		if (!d) return;
+		const key = dateKey(startOfDay(d));
+		if (!daysWithFree.has(key)) daysWithFree.set(key, d);
+	});
+	return Array.from(daysWithFree.values()).sort((a, b) => a.getTime() - b.getTime()).slice(0, 3);
+}
+
+function formatDayForDisplay(date) {
+	const dayName = WEEKDAY_LABELS_LOWER[date.getDay()];
+	return `${dayName}, ${date.getDate()} ${MONTH_NAMES_GENITIVE_LOWER[date.getMonth()]}`;
+}
+
 function setHint(text) {
 	if (!hint) return;
 	if (role !== "customer") {
@@ -306,6 +346,24 @@ function setHint(text) {
 	const confirmedSlot = findCustomerConfirmedSlot();
 	if (confirmedSlot) {
 		hint.textContent = confirmedSlotHintText(confirmedSlot);
+		return;
+	}
+	const requestedSlot = findCustomerRequestedSlot();
+	if (requestedSlot) {
+		const slotDate = parseDateKey(requestedSlot.datePart);
+		const timeStr = String(requestedSlot.timePart || "");
+		if (slotDate) {
+			const dateStr = formatDayForDisplay(slotDate);
+			hint.textContent = `Вы запросили запись на ${dateStr} в ${timeStr} - ждём подтверждения мастера.`;
+		} else {
+			hint.textContent = text;
+		}
+		return;
+	}
+	const availableDays = getCustomerAvailableDaysWithSlots();
+	if (availableDays.length > 0) {
+		const daysStr = availableDays.map(formatDayForDisplay).join(", ");
+		hint.textContent = `Есть свободное время для записи в ${daysStr}.`;
 		return;
 	}
 	hint.textContent = text;

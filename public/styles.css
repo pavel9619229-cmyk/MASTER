@@ -203,6 +203,7 @@ h1 {
 	font-weight: 600;
 	min-width: 0;
 	white-space: nowrap;
+	font-size: 24px;
 }
 
 .customer-data input {
@@ -213,6 +214,7 @@ h1 {
 	font-family: inherit;
 	min-width: 210px;
 	width: 100%;
+	font-size: 24px;
 }
 
 .role-switch select,
