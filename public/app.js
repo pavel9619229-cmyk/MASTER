@@ -1021,11 +1021,6 @@ function renderCalendar() {
 	const times = getTimesFromSettings();
 	const timesToRender = role === "customer"
 		? times.filter((time) => dayKeys.some((dayKey) => {
-			const dayDate = parseDateKey(dayKey);
-			if (!dayDate) return false;
-			const isPastDay = startOfDay(dayDate) < todayStart;
-			const isWorkDay = weekWorkDays.includes(dayDate.getDay());
-			if (!isWorkDay) return false;
 			const key = `${dayKey}T${time}`;
 			const slotsInCell = (grouped[key] || []).filter((slot) => {
 				const st = normalizeStatus(slot?.status);
