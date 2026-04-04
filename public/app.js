@@ -1714,6 +1714,9 @@ socket.on("state", (nextState) => {
 	} else {
 		renderWeekControls();
 		renderView();
+		if (role === "customer") {
+			setHint("Выберите время для записи");
+		}
 	}
 	if (newRequestedSlotId) {
 		focusNewRequestedSlot(newRequestedSlotId);
