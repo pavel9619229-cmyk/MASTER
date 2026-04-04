@@ -36,6 +36,7 @@ const MONTH_NAMES_GENITIVE_LOWER = ["января", "февраля", "март�
 const PHONE_PREFIX = "+7";
 const CUSTOMER_PROFILE_STORAGE_KEY = "customerProfile";
 const MASTER_PROFILE_STORAGE_KEY = "masterProfile";
+const CUSTOMER_VISIBLE_AHEAD_DAYS = 10;
 
 let role = (typeof window !== "undefined" && window.PAGE_ROLE) ? window.PAGE_ROLE : "customer";
 let appState = { settings: { slotMinutes: 15 }, slots: {}, meta: {}, weekWorkDays: {} };
@@ -399,6 +400,10 @@ function currentNow() {
 	return appState.meta?.nowIso ? new Date(appState.meta.nowIso) : new Date();
 }
 
+function getCustomerLocalRangeEnd() {
+	return addDays(startOfDay(new Date()), CUSTOMER_VISIBLE_AHEAD_DAYS);
+}
+
 function currentSlotTimeLabel() {
 	const now = currentNow();
 	const step = Math.max(1, Number(appState.settings?.slotMinutes ?? 15));
@@ -754,8 +759,11 @@ function isCustomerFreeSlot(slot) {
 function getCustomerAvailableDayKeys() {
 	if (role !== "customer") return [];
 	const dayKeys = new Set();
+	const localRangeEnd = getCustomerLocalRangeEnd();
 	Object.values(appState.slots || {}).forEach((slot) => {
 		if (!slot?.datePart) return;
+		const slotDate = parseDateKey(slot.datePart);
+		if (!slotDate || startOfDay(slotDate) > localRangeEnd) return;
 		const status = normalizeStatus(slot?.status);
 		if (!isCustomerFreeSlot(slot) && status !== "requested" && status !== "confirmed") return;
 		dayKeys.add(String(slot.datePart));
@@ -1005,7 +1013,13 @@ function renderCalendar() {
 	const dayKeySet = new Set(dayKeys);
 	const weekKey = dateKey(currentWeekStart);
 	const weekWorkDays = Array.isArray(appState.weekWorkDays?.[weekKey]) ? appState.weekWorkDays[weekKey] : [];
-	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => dayKeySet.has(slot.datePart));
+	const localRangeEnd = role === "customer" ? getCustomerLocalRangeEnd() : null;
+	const visibleSlots = Object.values(appState.slots || {}).filter((slot) => {
+		if (!dayKeySet.has(slot.datePart)) return false;
+		if (role !== "customer") return true;
+		const slotDate = parseDateKey(slot.datePart);
+		return !!slotDate && startOfDay(slotDate) <= localRangeEnd;
+	});
 	if (visibleSlots.length === 0) {
 		calendarWrapper.innerHTML = "<p>На выбранный период сейчас нет свободных слотов.</p>";
 		clearMasterTopbarHeader();
