@@ -1426,16 +1426,20 @@ function renderWeekControls() {
 		const persistedMasterName = String(appState.settings?.masterName || "");
 		const persistedMasterPhone = normalizePhoneOrEmpty(appState.settings?.masterPhone || "");
 
-		if (masterNameInput) {
-			masterNameInput.value = persistedMasterName || String(localMasterProfile.name || "");
+		// Only overwrite form inputs if no unsaved changes (prevents losing user edits on state update)
+		const hasUnsaved = settingsSavedSnapshot && getSettingsSnapshot() !== settingsSavedSnapshot;
+		if (!hasUnsaved) {
+			if (masterNameInput) {
+				masterNameInput.value = persistedMasterName || String(localMasterProfile.name || "");
+			}
+			if (masterPhoneInput) {
+				masterPhoneInput.value = persistedMasterPhone || normalizePhoneOrEmpty(localMasterProfile.phone || "");
+			}
+			saveMasterProfileToStorage();
+			if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
+			if (workEndHourInput) workEndHourInput.value = String(appState.settings?.endHour ?? 18);
 		}
-		if (masterPhoneInput) {
-			masterPhoneInput.value = persistedMasterPhone || normalizePhoneOrEmpty(localMasterProfile.phone || "");
-		}
-		saveMasterProfileToStorage();
-		if (workStartHourInput) workStartHourInput.value = String(appState.settings?.startHour ?? 9);
-		if (workEndHourInput) workEndHourInput.value = String(appState.settings?.endHour ?? 18);
-		
+
 		settingsForm.querySelectorAll('input[name="workDay"]').forEach((el) => {
 			el.checked = selected.includes(Number(el.value));
 			

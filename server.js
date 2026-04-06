@@ -602,11 +602,18 @@ function tryRemoveUnusedExtra(primarySlot) {
 }
 
 io.on("connection", (socket) => {
+	// Cache isMaster at connection time to avoid session read issues on each event
+	socket.data.isMaster = !!(socket.request.session && socket.request.session.isMaster);
+	console.log(`[socket connect] id=${socket.id} isMaster=${socket.data.isMaster}`);
 	socket.emit("state", buildStateForSocket(socket));
 
 	function isMaster() {
-		return !!(socket.request.session && socket.request.session.isMaster);
+		return !!(socket.data.isMaster || (socket.request.session && socket.request.session.isMaster));
 	}
+
+	socket.on("client:requestState", () => {
+		socket.emit("state", buildStateForSocket(socket));
+	});
 
 	socket.on("customer:confirmSlot", ({ slotId, selectedStatus, customerName, customerPhone }) => {
 		const slot = state.slots[slotId];
