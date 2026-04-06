@@ -33,6 +33,7 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 io.use((socket, next) => {
 	sessionMiddleware(socket.request, socket.request.res || {}, next);
@@ -862,10 +863,12 @@ io.on("connection", (socket) => {
 
 function requireMasterAuth(req, res, next) {
 	if (req.session && req.session.isMaster) return next();
+	// Return JSON error for API routes instead of redirect
+	if (req.path.startsWith("/api/")) {
+		return res.status(401).json({ error: "Не авторизован. Перезайдите." });
+	}
 	res.redirect("/login");
 }
-
-app.use(express.json());
 
 app.post("/api/settings", requireMasterAuth, (req, res) => {
 	const { masterName, masterPhone, masterAddress, startHour, endHour } = req.body;
