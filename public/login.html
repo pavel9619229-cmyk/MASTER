@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Вход — Мастер</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<link rel="stylesheet" href="styles.css?v=20260405-2350" />
+	</head>
+	<body>
+		<div class="background-pattern"></div>
+		<main class="login-layout">
+			<div class="panel login-panel">
+				<p class="eyebrow">Онлайн-календарь</p>
+				<h1>Вход для мастера</h1>
+				<form class="login-form" id="login-form" method="POST" action="/login">
+					<label class="login-label">
+						Email
+						<input
+							type="email"
+							name="email"
+							placeholder="your@email.com"
+							required
+							autocomplete="username"
+							class="login-input"
+						/>
+					</label>
+					<label class="login-label">
+						Пароль
+						<input
+							type="password"
+							name="password"
+							required
+							autocomplete="current-password"
+							class="login-input"
+						/>
+					</label>
+					<div id="login-error" class="login-error hidden">Неверный email или пароль.</div>
+				</form>
+				<p class="login-hint">Страница клиента доступна по <a href="/">главной ссылке</a>.</p>
+				<div class="login-panel-footer">
+					<button type="submit" form="login-form" class="btn primary login-btn">Войти</button>
+				</div>
+			</div>
+		</main>
+		<script>
+			if (location.search.includes("error=1")) {
+				document.getElementById("login-error").classList.remove("hidden");
+			}
+		</script>
+	</body>
+</html>

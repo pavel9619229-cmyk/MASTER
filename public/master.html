@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Запись — Мастер</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="styles.css" />
+		<script>window.PAGE_ROLE = "executor";</script>
+	</head>
+	<body class="master-page">
+		<div class="background-pattern"></div>
+
+		<div class="master-topbar">
+			<header class="header">
+				<p class="subtitle">Онлайн-календарь для записи на парикмахерские услуги</p>
+				<div class="master-title-row">
+					<h1>Личный кабинет мастера</h1>
+					<button id="master-settings-btn" type="button" class="btn">НАСТРОЙКИ</button>
+				</div>
+			</header>
+
+			<div class="toolbar master-toolbar">
+				<div class="view-toggle">
+					<button id="view-day" type="button" class="btn view-btn">День</button>
+					<button id="view-week" type="button" class="btn view-btn active">Неделя</button>
+					<button id="view-month" type="button" class="btn view-btn">Месяц</button>
+				</div>
+				<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
+					<button id="week-prev" type="button" class="btn">←</button>
+					<div id="week-label" class="week-label"></div>
+					<button id="week-next" type="button" class="btn">→</button>
+				</div>
+				<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
+					<button id="month-prev" type="button" class="btn">←</button>
+					<div id="month-label" class="week-label"></div>
+					<button id="month-next" type="button" class="btn">→</button>
+				</div>
+			</div>
+		</div>
+
+		<main class="layout">
+			<section class="panel panel-main">
+				<div id="calendar-wrapper" class="calendar-wrapper"></div>
+			</section>
+
+			<aside class="panel panel-side">
+				<section id="settings-section">
+					<form id="settings-form" class="settings-form">
+						<fieldset class="workdays-fieldset unified-settings-card">
+							<div class="master-data-row">
+								<span class="settings-row-title">Имя мастера</span>
+								<input id="master-name" name="masterName" type="text" maxlength="80" placeholder="Например, Анна" />
+								<span class="settings-inline-label">Тел.</span>
+								<input id="master-phone" name="masterPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+							</div>
+							<label class="master-address-inline">
+								<span class="master-address-inline-label">Адрес салона</span>
+								<input id="master-address" name="masterAddress" type="text" maxlength="140" placeholder="Например, ул. Ленина, 12" />
+							</label>
+							<div class="workdays-row-inline">
+								<div class="workdays-title">Рабочие дни</div>
+								<div class="workdays-group">
+									<label class="day-label"><input type="checkbox" name="workDay" value="1" /><span>Пн</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="2" checked /><span>Вт</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="3" /><span>Ср</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="4" /><span>Чт</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="5" /><span>Пт</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="6" /><span>Сб</span></label>
+									<label class="day-label"><input type="checkbox" name="workDay" value="0" /><span>Вс</span></label>
+								</div>
+							</div>
+							<div class="work-hours-line">
+								<div class="work-hours-title">Рабочие часы</div>
+								<label class="work-hour-field">
+									<span>с</span>
+									<input id="work-start-hour" name="workStartHour" type="number" min="0" max="23" step="1" value="9" />
+								</label>
+								<label class="work-hour-field">
+									<span>до</span>
+									<input id="work-end-hour" name="workEndHour" type="number" min="1" max="24" step="1" value="18" />
+								</label>
+							</div>
+							<div class="unified-settings-actions">
+								<button type="submit" class="btn primary">Сохранить</button>
+							</div>
+						</fieldset>
+					</form>
+				</section>
+				<form method="POST" action="/logout" class="master-logout-form">
+					<button type="submit" class="btn logout-btn">Выйти</button>
+				</form>
+			</aside>
+		</main>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="app.js"></script>
+	</body>
+</html>

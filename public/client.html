@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Запись на услугу</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<link rel="stylesheet" href="styles.css?v=20260405-2350" />
+		<script>
+			window.PAGE_ROLE = "customer";
+			window.APP_VERSION = "20260405-2350";
+		</script>
+	</head>
+	<body class="customer-page">
+		<div class="background-pattern"></div>
+
+		<main class="layout">
+			<section class="panel panel-main">
+				<div class="customer-cards" aria-label="Карточки клиента">
+					<section class="customer-card customer-card-intro">
+						<h1 class="customer-intro-title">
+							<span class="customer-intro-heading">Онлайн-календарь для записи на парикмахерские услуги мастера</span>
+							<span id="customer-master-name">...</span>,
+							тел. <span id="customer-master-phone">...</span>,
+							по адресу <span id="customer-master-address">...</span>.
+						</h1>
+						<div id="customer-data" class="customer-data">
+							<label>
+								Ваше имя
+								<input id="customerName" type="text" maxlength="60" placeholder="Например, Иван" />
+							</label>
+							<label>
+								Телефон
+								<input id="customerPhone" type="tel" maxlength="30" placeholder="+7 900 123-45-67" />
+							</label>
+						</div>
+					</section>
+
+					<section class="customer-card customer-card-status">
+						<p class="customer-card-title">Информация о наличии записи на данный момент</p>
+						<p id="hint" class="hint"></p>
+					</section>
+
+					<section class="customer-card customer-card-controls">
+						<p class="customer-card-title">Нажмите на свободный слот, чтобы запросить резерв.</p>
+						<div class="view-toggle customer-view-toggle">
+						</div>
+						<div id="week-nav" class="week-nav" aria-label="Навигация по неделям">
+							<button id="week-prev" type="button" class="btn">←</button>
+							<div id="week-label" class="week-label"></div>
+							<button id="week-next" type="button" class="btn">→</button>
+						</div>
+						<div id="month-nav" class="week-nav hidden" aria-label="Навигация по месяцам">
+							<button id="month-prev" type="button" class="btn">←</button>
+							<div id="month-label" class="week-label"></div>
+							<button id="month-next" type="button" class="btn">→</button>
+						</div>
+					</section>
+				</div>
+
+				<div id="calendar-wrapper" class="calendar-wrapper"></div>
+			</section>
+		</main>
+
+		<script src="/socket.io/socket.io.js?v=20260405-2350"></script>
+		<script src="js/dates.js?v=__APP_VERSION__"></script>
+		<script src="js/storage.js?v=__APP_VERSION__"></script>
+		<script src="app.js?v=20260405-2350"></script>
+	</body>
+</html>
