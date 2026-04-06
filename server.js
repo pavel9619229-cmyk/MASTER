@@ -819,7 +819,12 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("executor:updateWorkingHours", ({ startHour, endHour }) => {
-		if (!isMaster()) return;
+		if (!isMaster()) {
+			console.log("[updateWorkingHours] rejected: isMaster=false, session=", JSON.stringify(socket.request.session));
+			socket.emit("error:message", "Ошибка: сессия мастера не найдена. Перезайдите.");
+			return;
+		}
+		console.log("[updateWorkingHours] startHour=", startHour, "endHour=", endHour);
 		const safeStart = parseHourInput(startHour);
 		const safeEnd = parseHourInput(endHour);
 		if (safeStart === null || safeEnd === null) {
@@ -830,7 +835,6 @@ io.on("connection", (socket) => {
 			socket.emit("error:message", "Некорректный диапазон рабочих часов.");
 			return;
 		}
-		if (state.settings.startHour === safeStart && state.settings.endHour === safeEnd) return;
 		state.settings.startHour = safeStart;
 		state.settings.endHour = safeEnd;
 		syncSlotsForWorkingHours();
@@ -838,7 +842,10 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("executor:updateMasterProfile", ({ masterName, masterPhone, masterAddress }) => {
-		if (!isMaster()) return;
+		if (!isMaster()) {
+			socket.emit("error:message", "Ошибка: сессия мастера не найдена. Перезайдите.");
+			return;
+		}
 		state.settings.masterName = String(masterName || "").trim().slice(0, 80);
 		state.settings.masterPhone = String(masterPhone || "").trim().slice(0, 30);
 		state.settings.masterAddress = String(masterAddress || "").trim().slice(0, 140);
