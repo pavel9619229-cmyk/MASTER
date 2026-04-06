@@ -1650,25 +1650,30 @@ if (settingsForm) {
 		event.preventDefault();
 		if (role !== "executor") return;
 		saveMasterProfileToStorage();
-		socket.emit("executor:updateMasterProfile", {
-			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
-			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
-			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
-		});
+
+		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
+		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
+
+		fetch("/api/settings", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
+				masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
+				masterAddress: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
+				startHour,
+				endHour,
+			}),
+		}).then((r) => r.json()).then((data) => {
+			if (data.error) { setHint(data.error); return; }
+			markSettingsSnapshotSaved();
+		}).catch(() => setHint("Ошибка сохранения настроек."));
 
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
 		socket.emit("executor:updateWeekWorkDays", {
 			weekStart: dateKey(currentWeekStart),
 			workDays,
 		});
-
-		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
-		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
-		socket.emit("executor:updateWorkingHours", {
-			startHour,
-			endHour,
-		});
-		markSettingsSnapshotSaved();
 	});
 }
 

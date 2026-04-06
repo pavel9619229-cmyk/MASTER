@@ -865,6 +865,28 @@ function requireMasterAuth(req, res, next) {
 	res.redirect("/login");
 }
 
+app.use(express.json());
+
+app.post("/api/settings", requireMasterAuth, (req, res) => {
+	const { masterName, masterPhone, masterAddress, startHour, endHour } = req.body;
+	if (masterName !== undefined) state.settings.masterName = String(masterName || "").trim().slice(0, 80);
+	if (masterPhone !== undefined) state.settings.masterPhone = String(masterPhone || "").trim().slice(0, 30);
+	if (masterAddress !== undefined) state.settings.masterAddress = String(masterAddress || "").replace(/\s+/g, " ").trim().slice(0, 140);
+	if (startHour !== undefined && endHour !== undefined) {
+		const safeStart = parseHourInput(startHour);
+		const safeEnd = parseHourInput(endHour);
+		if (safeStart !== null && safeEnd !== null && safeStart >= 0 && safeStart <= 23 && safeEnd >= 1 && safeEnd <= 24 && safeEnd > safeStart) {
+			state.settings.startHour = safeStart;
+			state.settings.endHour = safeEnd;
+			syncSlotsForWorkingHours();
+		} else {
+			return res.status(400).json({ error: "Некорректный диапазон рабочих часов." });
+		}
+	}
+	emitState();
+	res.json({ ok: true, settings: state.settings });
+});
+
 app.get("/login", (req, res) => {
 	if (req.session && req.session.isMaster) return res.redirect("/master");
 	res.sendFile(path.join(__dirname, "public", "login.html"));
