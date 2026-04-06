@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 const crypto = require("crypto");
 const express = require("express");
 const http = require("http");
@@ -46,8 +47,32 @@ const MASTER_PAST_DAYS = 31;
 const MASTER_FUTURE_DAYS = 62;
 const CUSTOMER_FUTURE_DAYS = 10;
 
+const STATE_FILE = path.join(__dirname, "state.json");
+
+function loadPersistedState() {
+	try {
+		if (fs.existsSync(STATE_FILE)) {
+			const raw = fs.readFileSync(STATE_FILE, "utf8");
+			return JSON.parse(raw);
+		}
+	} catch (e) {
+		console.error("Failed to load persisted state:", e.message);
+	}
+	return null;
+}
+
+function persistState() {
+	try {
+		fs.writeFileSync(STATE_FILE, JSON.stringify(state), "utf8");
+	} catch (e) {
+		console.error("Failed to persist state:", e.message);
+	}
+}
+
+const _persisted = loadPersistedState();
+
 const state = {
-	settings: {
+	settings: Object.assign({
 		startHour: 9,
 		endHour: 18,
 		slotMinutes: SLOT_MINUTES,
@@ -55,9 +80,9 @@ const state = {
 		masterPhone: "",
 		masterAddress: "",
 		defaultWorkDays: [2],
-	},
-	weekWorkDays: {},
-	slots: {},
+	}, _persisted?.settings || {}),
+	weekWorkDays: _persisted?.weekWorkDays || {},
+	slots: _persisted?.slots || {},
 };
 
 function pad(num) {
@@ -536,6 +561,7 @@ function buildStateForSocket(socket) {
 }
 
 function emitState() {
+	persistState();
 	io.sockets.sockets.forEach((sock) => {
 		sock.emit("state", buildStateForSocket(sock));
 	});

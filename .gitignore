@@ -3,3 +3,4 @@ npm-debug.log*
 .DS_Store
 .env.local
 ## GitHub Copilot Chat04042026.md
+state.json
