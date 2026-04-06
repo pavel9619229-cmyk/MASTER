@@ -1654,20 +1654,31 @@ if (settingsForm) {
 		const startHour = Number(workStartHourInput ? workStartHourInput.value : appState.settings?.startHour ?? 9);
 		const endHour = Number(workEndHourInput ? workEndHourInput.value : appState.settings?.endHour ?? 18);
 
+		const payload = {
+			masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
+			masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
+			masterAddress: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
+			startHour,
+			endHour,
+		};
+		console.log("[settings save] sending:", JSON.stringify(payload));
+
 		fetch("/api/settings", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				masterName: String(masterNameInput ? masterNameInput.value : "").trim(),
-				masterPhone: String(masterPhoneInput ? masterPhoneInput.value : "").trim(),
-				masterAddress: String(masterAddressInput ? masterAddressInput.value : "").replace(/\s+/g, " ").trim(),
-				startHour,
-				endHour,
-			}),
-		}).then((r) => r.json()).then((data) => {
+			body: JSON.stringify(payload),
+		}).then((r) => {
+			console.log("[settings save] response status:", r.status);
+			return r.json();
+		}).then((data) => {
+			console.log("[settings save] response data:", JSON.stringify(data));
 			if (data.error) { setHint(data.error); return; }
+			setHint("Настройки сохранены ✓");
 			markSettingsSnapshotSaved();
-		}).catch(() => setHint("Ошибка сохранения настроек."));
+		}).catch((err) => {
+			console.error("[settings save] error:", err);
+			setHint("Ошибка сохранения настроек.");
+		});
 
 		const workDays = Array.from(settingsForm.querySelectorAll('input[name="workDay"]:checked')).map((el) => Number(el.value));
 		socket.emit("executor:updateWeekWorkDays", {
@@ -1719,6 +1730,7 @@ if (masterSettingsBtn) {
 
 socket.on("state", (nextState) => {
 	lastStateReceivedAt = Date.now();
+	console.log("[state received] settings:", JSON.stringify(nextState.settings));
 	const shouldTrackNewRequests = hasReceivedInitialState;
 	const newRequestedSlotId = shouldTrackNewRequests ? findNewCustomerRequestedSlotId(appState, nextState) : "";
 	appState = nextState;
